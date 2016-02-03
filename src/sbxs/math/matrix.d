@@ -1,6 +1,8 @@
 /**
  * Matrices in sizes from 2x2 to 4x4.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros (though almost everything here, to some
  * extent, is derived from public domain code from
  * $(LINK2 https://github.com/d-gamedev-team/gfm, GFM)).

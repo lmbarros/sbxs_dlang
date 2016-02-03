@@ -1,6 +1,8 @@
 /**
  * Vectors in 2D, 3D and 4D.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros (though everything here, to some extent, is
  *     derived from public domain code from
  *     $(LINK2 https://github.com/d-gamedev-team/gfm, GFM)).

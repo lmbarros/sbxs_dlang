@@ -1,6 +1,8 @@
 /**
  * Assorted mathematical utilities for dealing with angles.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 

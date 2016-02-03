@@ -5,6 +5,8 @@
  * seem to be particularly safe. It's not exactly trivial to break either, so it
  * shall suffice for encrypting non-critical things, like saved games.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: D version by Leandro Motta Barros, adapted from code available at
  * the Wikipedia.
  *

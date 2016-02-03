@@ -1,6 +1,8 @@
 /**
  * An orientation represented as Euler angles.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 

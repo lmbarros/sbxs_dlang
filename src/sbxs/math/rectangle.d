@@ -1,6 +1,8 @@
 /**
  * Rectangles.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 

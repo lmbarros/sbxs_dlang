@@ -1,6 +1,8 @@
 /**
  * A matrix used to represent an orientation.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 

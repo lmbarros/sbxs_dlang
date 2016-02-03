@@ -1,6 +1,8 @@
 /**
  * Polar and spherical coordinates.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros. Greatest inspiration here was "3D Math Primer
  *     for Graphics and Game Development, Second Edition", by Fletcher Dunn and
  *     Ian Parberry.

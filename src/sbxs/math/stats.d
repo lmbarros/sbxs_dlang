@@ -4,6 +4,8 @@
  * Also, my first attempt to write some range-based code -- with a feeling of "I
  * think I should have tried harder".
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 

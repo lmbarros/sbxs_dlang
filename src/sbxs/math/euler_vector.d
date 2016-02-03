@@ -1,6 +1,8 @@
 /**
  * A rotation represented as an Euler vector.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  */
 
