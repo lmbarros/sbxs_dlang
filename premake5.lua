@@ -1,10 +1,12 @@
 workspace "SBXS"
+    language "D"
     configurations { "Test" }
     location "build"
     filter "configurations:Test"
-        buildoptions {"-unittest"}
+        flags { "UnitTest", "CodeCoverage" }
+        optimize "Off"
 
 project "UnitTests"
-    language "D"
     kind "ConsoleApp"
     files {"src/run_unit_tests.d", "src/sbxs/**.d"}
+    targetdir "build"
