@@ -96,3 +96,43 @@ unittest
     assertThrown!AssertError(assertSmall(0.000001, 1e-7));
     assertThrown!AssertError(assertSmall(-0.000001, 1e-7));
 }
+
+
+/// Checks whether `v` is between `a` and `b` (closed interval at both ends).
+public void assertBetween(V, L, H)
+    (V v, L a, H b, string file = __FILE__, size_t line = __LINE__)
+in
+{
+    assert(a <= b);
+}
+body
+{
+    import std.string;
+
+    assert(
+        v >= a && v <= b,
+        format(
+            "assertBetween failure at %s:%s: %s is not between %s and %s",
+            file, line, v, a, b));
+}
+
+///
+unittest
+{
+    import core.exception;
+    import std.exception;
+
+    assertBetween(2, 1, 3);
+    2.assertBetween(1, 3);
+    2.0.assertBetween(1.0, 3.0);
+    byte(2).assertBetween(byte(1), byte(3));
+
+    (-1).assertBetween(-2, 5);
+    (-3).assertBetween(-5, -2);
+    5.assertBetween(5, 5);
+    5.assertBetween(0, 5);
+    5.assertBetween(5, 15);
+
+    assertThrown!AssertError(5.assertBetween(1, 2));
+    assertThrown!AssertError(1.2.assertBetween(1.201, 1.3));
+}
