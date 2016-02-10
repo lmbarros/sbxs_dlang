@@ -16,7 +16,7 @@
  *     https://code.google.com/p/fractalterraingeneration/wiki/Fractional_Brownian_Motion
  */
 
-module deever.noise.fractal_noise;
+module sbxs.noise.fractal_noise;
 
 import std.traits;
 
