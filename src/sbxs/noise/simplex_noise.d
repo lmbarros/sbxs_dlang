@@ -2,10 +2,12 @@
  * Perlin's Simplex Noise over 1, 2, 3 and 4 dimensions.
  *
  * Warning:
- *     I am including this in Deever because I had the implementation done
+ *     I am including this in the library because I had the implementation done
  *     anyway, but be aware that Perlin's Simplex noise is patented, so you may
  *     wish to stay away from it. Please use OpenSimplexNoise (also included in
- *     Deever) for a patent-free alternative.
+ *     the library) for a patent-free alternative.
+ *
+ * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Original public-domain C code by Stefan Gustavson
  *     (http://staffwww.itn.liu.se/~stegu/simplexnoise/DSOnoises.zip). D version

@@ -4,6 +4,8 @@
  * "Visually axis-decorrelated coherent noise", similar to Perlin's
  * simplex noise, but unencumbered by patents.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Original public domain Java code by Kurt Spencer. Translated to D by
  *     Leandro Motta Barros.
  *

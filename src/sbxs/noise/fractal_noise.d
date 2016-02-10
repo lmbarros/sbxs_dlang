@@ -8,6 +8,8 @@
  * $(LINK2 https://en.wikipedia.org/wiki/Fractional_Brownian_motion, general concept)
  * of fractional Brownian motion.
  *
+ * License: MIT License, see the `LICENSE` file.
+ *
  * Authors: Leandro Motta Barros.
  *
  * See_Also:
