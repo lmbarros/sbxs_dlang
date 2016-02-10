@@ -14,16 +14,23 @@ premake5 gmake \
     && make \
     && ./UnitTests
 
+if [ $? != 0 ]; then
+    exit
+fi
+
 # Print a nice coverage report
 report=""
 for f in .*.lst; do
+    if [ $f == "..-src-sbxs-noise-test_data-open_simplex_noise_data.lst" ]; then
+        continue
+    fi
     line=`tail -n 1 $f`
     fileName=`echo $line | cut -d' ' -f 1`
     coverage=`echo $line | cut -d' ' -f 3`
-    report="[$coverage] $fileName\n$report"
+    report="$coverage $fileName\n$report"
 done
 
-echo -e $report | sort -n
+echo -e $report | sort -n -r
 
 # Get back to where you once belonged
 cd $initialDirectory
