@@ -1,0 +1,12 @@
+[submodule "deps/DerelictUtil"]
+	path = deps/DerelictUtil
+	url = git@github.com:DerelictOrg/DerelictUtil.git
+[submodule "deps/DerelictSDL2"]
+	path = deps/DerelictSDL2
+	url = git@github.com:DerelictOrg/DerelictSDL2.git
+[submodule "deps/DerelictGL3"]
+	path = deps/DerelictGL3
+	url = git@github.com:DerelictOrg/DerelictGL3.git
+[submodule "deps/DerelictAllegro5"]
+	path = deps/DerelictAllegro5
+	url = git@github.com:DerelictOrg/DerelictAllegro5.git
