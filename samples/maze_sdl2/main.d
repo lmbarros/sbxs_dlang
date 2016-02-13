@@ -18,12 +18,12 @@ void main()
 
     Engine!SDL2Backend engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     writeln("Hello from the SDL2 Maze example!");
 
     writefln("Now it is %s...", engine.core.getTime());
     engine.core.sleep(0.2);
     writefln("...and now it is %s.", engine.core.getTime());
-
-    engine.shutdown();
 }

@@ -18,12 +18,12 @@ void main()
 
     Engine!Allegro5Backend engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     writeln("Hello from the Allegro5 Maze example!");
 
     writefln("Now it is %s...", engine.core.getTime());
     engine.core.sleep(0.2);
     writefln("...and now it is %s.", engine.core.getTime());
-
-    engine.shutdown();
 }
