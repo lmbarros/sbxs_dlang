@@ -12,3 +12,18 @@ Feel free to use and submit pull requests (especially bug fixes).
 
 Written in the [D programming language](https://dlang.org) (AKA
 dlang), by Leandro Motta Barros.
+
+
+## Quick compilation guide
+
+### Linux
+
+First: `premake5 gmake`. Or, to specify a D compiler other than DMD:
+`premake --dc=gdc gmake` (or `ldc`).
+
+
+Then, for a standard, debug build: `make -j8`
+
+For a test build: `make -j8 config=test
+
+For a release build: `make -j8 config=release`

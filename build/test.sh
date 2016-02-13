@@ -5,13 +5,12 @@
 # By Leandro Motta Barros
 #
 
-# Remember where we were
-initialDirectory=`pwd`
+# Clean everything
+#./clean.sh
 
 # Build and run unit tests
 premake5 gmake \
-    && cd build \
-    && make \
+    && make -j8 config=test UnitTests \
     && ./UnitTests
 
 if [ $? != 0 ]; then
@@ -19,9 +18,28 @@ if [ $? != 0 ]; then
 fi
 
 # Print a nice coverage report
+shallThisFileBeIgnored()
+{
+    # Ignore test data for noise
+    if [ "$1" == "..-src-sbxs-noise-test_data-open_simplex_noise_data.lst" ]; then
+        return 0
+    fi
+
+    # Ignore engine back ends
+    echo "$1" | grep -Eq "^..-src-sbxs-engine-backend"
+
+    if [ $? == 0 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+
 report=""
 for f in .*.lst; do
-    if [ $f == "..-src-sbxs-noise-test_data-open_simplex_noise_data.lst" ]; then
+    shallThisFileBeIgnored "$f"
+    if [ $? == 0 ]; then
         continue
     fi
     line=`tail -n 1 $f`
@@ -31,6 +49,3 @@ for f in .*.lst; do
 done
 
 echo -e $report | sort -n -r
-
-# Get back to where you once belonged
-cd $initialDirectory

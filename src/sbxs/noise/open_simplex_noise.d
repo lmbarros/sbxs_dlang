@@ -2952,7 +2952,7 @@ unittest
     assertClose(ng.noise(-0.8,  7.7, -7.7, 33.3), -0.20662241504474765, epsilon);
 }
 
-version(LongRunningUnitTests)
+version(ExtraUnitTests)
 {
     // Now, let's test the results thoroughly, comparing lots of generated values
     // with values from the reference Java implementation.
@@ -3024,4 +3024,4 @@ version(LongRunningUnitTests)
             ++i;
         }
     }
-} // version (LongRunningUnitTests)
+} // version (ExtraUnitTests)
