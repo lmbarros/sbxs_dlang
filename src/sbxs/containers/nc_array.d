@@ -128,6 +128,22 @@ public struct NCArray(T, Allocator = Mallocator)
         return m[index];
     }
 
+    /// Provides a way to iterate over the array elements.
+    public int opApply(int delegate(ref T) dg)
+    {
+        int result = 0;
+        auto m = cast(T*)_memory;
+
+        for (size_t i = 0; i < _length; ++i)
+        {
+            result = dg(m[i]);
+            if (result)
+                break;
+        }
+
+        return result;
+    }
+
     /**
      * Reserves enough memory for `newCapacity` elements.
      *
@@ -209,6 +225,57 @@ unittest
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
+
+// Iterate over an `NCArray`
+unittest
+{
+    struct NCT
+    {
+        @disable this(this);
+        this(int data) { this.data = data; }
+        int data;
+    }
+
+    NCArray!NCT ncArray;
+    ncArray.insertBack(10);
+    ncArray.insertBack(11);
+    ncArray.insertBack(12);
+    ncArray.insertBack(13);
+    ncArray.insertBack(14);
+
+    // Iterate over the whole array
+    int i = 0;
+    foreach(ref nct; ncArray)
+    {
+        if (i == 0)
+            assert(nct.data == 10);
+        else if (i == 1)
+            assert(nct.data == 11);
+        else if (i == 2)
+            assert(nct.data == 12);
+        else if (i == 3)
+            assert(nct.data == 13);
+        else if (i == 4)
+            assert(nct.data == 14);
+
+        ++i;
+    }
+
+    // Iterate again, leaving before finishing
+    i = 0;
+    foreach(ref nct; ncArray)
+    {
+        if (i == 0)
+            assert(nct.data == 10);
+        else if (i == 1)
+            assert(nct.data == 11);
+        else
+            break;
+
+        ++i;
+    }
+}
+
 
 // Ensure that destructors are properly called.
 unittest
