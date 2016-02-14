@@ -1,7 +1,7 @@
 build/*.o
+build/*.a
 build/*.lst
 build/Makefile
 build/*.make
 build/Sample*
 build/UnitTests
-
