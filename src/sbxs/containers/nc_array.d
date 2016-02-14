@@ -6,6 +6,8 @@
  * Authors: Leandro Motta Barros.
  */
 
+module sbxs.containers.nc_array;
+
 import std.experimental.allocator.mallocator;
 
 
