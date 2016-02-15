@@ -6,7 +6,7 @@
 #
 
 # Clean everything
-#./clean.sh
+./clean.sh
 
 # Build and run unit tests
 premake5 gmake \

@@ -14,7 +14,8 @@ void main()
 {
     import std.stdio;
     import sbxs.engine.engine;
-    import sbxs.engine.backend.allegro5;
+    import sbxs.engine.display;
+    import sbxs.engine.backends.allegro5;
 
     Engine!Allegro5Backend engine;
     engine.initialize();
@@ -26,4 +27,9 @@ void main()
     writefln("Now it is %s...", engine.core.getTime());
     engine.core.sleep(0.2);
     writefln("...and now it is %s.", engine.core.getTime());
+
+    DisplayParams dp;
+    dp.title = "Allegro 5 Maze";
+    auto d = engine.display.createDisplay(dp);
+    engine.core.sleep(3.0);
 }
