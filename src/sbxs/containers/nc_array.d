@@ -263,7 +263,6 @@ unittest
     assert(ncArray.length == 1);
     assert(ncArray[0].data == 1000);
     assert(ncArray.back.data == 1000);
-    assert(false);
 
     // If `NCT` had a destructor, the destructors for all the elements in the
     // array would be called when the array itself went out of scope.
@@ -459,5 +458,5 @@ unittest
 
     ncArray.clear();
     assert(ncArray.length == 0);
-    assert(NCT.numDestructorsCalled == 1);
+    assert(NCT.numDestructorsCalled == 4);
 }
