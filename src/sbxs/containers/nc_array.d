@@ -1,5 +1,5 @@
 /**
- * Array-like container for non-copiable objects.
+ * Array-like container for non-copyable objects.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -12,7 +12,7 @@ import std.experimental.allocator.mallocator;
 
 
 /**
- * A dynamic, array-like container, made to store non-copiable objects.
+ * A dynamic, array-like container, made to store non-copyable objects.
  *
  * Memory for new elements is allocated as needed using an allocator
  * passed as a compile-time parameter (`Mallocator`, bu default). When
@@ -40,8 +40,8 @@ public struct NCArray(T, Allocator = Mallocator)
 {
     import std.conv: emplace;
 
-    // If the stored are non-copiable, it doesn't hurt to explicit that the
-    // `NCArray` itself os non-copiable, too.
+    // If the stored are non-copyable, it doesn't hurt to explicit that the
+    // `NCArray` itself os non-copyable, too.
     @disable this(this);
 
     /// Destroys the `RCAArray` and all values contained within it.
@@ -105,12 +105,33 @@ public struct NCArray(T, Allocator = Mallocator)
         --_length;
     }
 
+    /// Removes the last element of the array.
+    public void removeBack()
+    in
+    {
+        assert(_length > 0);
+    }
+    body
+    {
+        removeAt(_length - 1);
+    }
+
+    /// Removes all elements from the array.
+    public void clear()
+    {
+        auto m = cast(T*)_memory;
+        for (size_t i = 0; i < _length; ++i)
+            destroy(m[i]);
+
+        _length = 0;
+    }
+
     /**
-     * Returns the value at a given index.
+     * Returns the element at a given index.
      *
-     * The value is returned by reference, since we cannot copy it.
+     * The element is returned by reference, since we cannot copy it.
      *
-     * Tests for out-of-bounds index only in debug time, with an `assert()`.
+     * Tests for out-of-bounds index only at debug time, with an `assert()`.
      *
      * Parameters:
      *     index = The desired index.
@@ -126,6 +147,26 @@ public struct NCArray(T, Allocator = Mallocator)
     {
         auto m = cast(T*)_memory;
         return m[index];
+    }
+
+    /**
+     * Returns the element at the back of the array (AKA the last element).
+     *
+     * The element is returned by reference, since we cannot copy it.
+     *
+     * Tests for empty array only at debug time, with an `assert()`.
+     *
+     * Returns: The value at the back of the array.
+     */
+    public ref T back()
+    in
+    {
+        assert(_length > 0);
+    }
+    body
+    {
+        auto m = cast(T*)_memory;
+        return m[_length - 1];
     }
 
     /// Provides a way to iterate over the array elements.
@@ -189,7 +230,7 @@ public struct NCArray(T, Allocator = Mallocator)
 ///
 unittest
 {
-    // A non-copiable type.
+    // A non-copyable type.
     struct NCT
     {
         @disable this(this);
@@ -205,16 +246,24 @@ unittest
     ncArray.insertBack(1000);
     ncArray.insertBack(1001);
     ncArray.insertBack(1002);
+    assert(ncArray.length == 3);
     assert(ncArray[0].data == 1000);
     assert(ncArray[1].data == 1001);
     assert(ncArray[2].data == 1002);
-    assert(ncArray.length == 3);
+    assert(ncArray.back.data == 1002);
 
-    // Remove an element
+    // Remove an element by index
     ncArray.removeAt(1); // destructor would be called if `NCT` had one
+    assert(ncArray.length == 2);
     assert(ncArray[0].data == 1000);
     assert(ncArray[1].data == 1002);
-    assert(ncArray.length == 2);
+
+    // Remove last element
+    ncArray.removeBack();
+    assert(ncArray.length == 1);
+    assert(ncArray[0].data == 1000);
+    assert(ncArray.back.data == 1000);
+    assert(false);
 
     // If `NCT` had a destructor, the destructors for all the elements in the
     // array would be called when the array itself went out of scope.
@@ -387,4 +436,28 @@ unittest
     }
 
     assertThrown!OutOfMemoryError(newHugeArray());
+}
+
+
+// Test `clear()`, including destructors calls.
+unittest
+{
+    struct NCT
+    {
+        @disable this(this);
+        ~this() { ++numDestructorsCalled; }
+        static int numDestructorsCalled = 0;
+    }
+
+    NCArray!NCT ncArray;
+    ncArray.insertBack();
+    ncArray.insertBack();
+    ncArray.insertBack();
+    ncArray.insertBack();
+    assert(ncArray.length == 4);
+    assert(NCT.numDestructorsCalled == 0);
+
+    ncArray.clear();
+    assert(ncArray.length == 0);
+    assert(NCT.numDestructorsCalled == 1);
 }
