@@ -55,6 +55,7 @@ workspace "SBXS"
     includedirs { "../src", "../deps/Derelict*/source" }
     versionconstants (versionAllDeps)
     flags { "MultiProcessorCompile" }
+    warnings "Extra"
     targetdir "."
 
     filter "configurations:Debug or Test"
