@@ -15,6 +15,11 @@ module sbxs.util.test;
  * This implements the same "very close with tolerance $(I e)" algorithm used by
  * $(LINK2 http://www.boost.org/doc/libs/1_56_0/libs/test/doc/html/utf/testing-tools/floating_point_comparison.html, Boost Test),
  * which works nicely with both very large and very small numbers.
+ *
+ * TODO: Consider using `std.math.approxEqual()` instead of this. Docs say its
+ *       naming and semantics will be revised, so I should probably keep my
+ *       function around for some time. Anyway, using a standard alternative
+ *       instead of maintaining my own code would be good.
  */
 public bool isClose(U, V, E)(U u, V v, E e) @safe @nogc nothrow pure
 {
