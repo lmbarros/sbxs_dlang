@@ -44,8 +44,8 @@ public struct Quaternion(T)
      */
     public nothrow @property string toString() const
     {
-        import std.string;
-        import std.exception;
+        import std.format: format;
+        import std.exception: assumeWontThrow;
 
         return assumeWontThrow(format("[%s (%s, %s, %s)]", w, x, y, z));
     }
