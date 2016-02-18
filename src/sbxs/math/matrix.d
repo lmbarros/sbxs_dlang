@@ -42,8 +42,8 @@ struct Matrix(T, size_t R, size_t C)
      */
     public nothrow @property string toString() const
     {
-        import std.string;
-        import std.exception;
+        import std.format: format;
+        import std.exception: assumeWontThrow;
 
         string res = assumeWontThrow(format("[%s", Vector!(T, C)(_data[0..C])));
 

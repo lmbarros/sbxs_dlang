@@ -35,7 +35,7 @@ public bool isClose(U, V, E)(U u, V v, E e) @safe @nogc nothrow pure
 public void assertClose(U, V, E)
     (U u, V v, E e, string file = __FILE__, size_t line = __LINE__) @trusted
 {
-    import std.string: format;
+    import std.format: format;
 
     assert(
         isClose(u, v, e),
@@ -80,8 +80,8 @@ unittest
 public void assertSmall(V, E)
     (V v, E e, string file = __FILE__, size_t line = __LINE__)
 {
-    import std.math;
-    import std.string;
+    import std.math: abs;
+    import std.format: format;
 
     const d = abs(v);
 
@@ -112,7 +112,7 @@ in
 }
 body
 {
-    import std.string;
+    import std.format: format;
 
     assert(
         v >= a && v <= b,

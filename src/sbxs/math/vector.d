@@ -44,8 +44,8 @@ public struct Vector(T, size_t N)
      */
     public nothrow @property string toString() const
     {
-        import std.string;
-        import std.exception;
+        import std.format: format;
+        import std.exception: assumeWontThrow;
 
         return assumeWontThrow(format("%s", _data));
     }
