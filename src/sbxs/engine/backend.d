@@ -164,6 +164,6 @@ public enum isBackend(T) =
     && __traits(compiles, T.init.initialize())
     && __traits(compiles, T.init.shutdown())
 
-    // Must provide implementing the core subsystem.
+    // Must implement the core subsystem.
     && implementsCoreBE!T
 ;
