@@ -14,12 +14,19 @@ module sbxs.engine.backends.sdl2;
 
 version(HasSDL2)
 {
-    import std.exception: enforce; // TODO: Use proper error handling
     import derelict.sdl2.sdl;
     import derelict.opengl3.gl3;
     import sbxs.engine.backend;
     import sbxs.engine.display;
 
+    //
+    // Helpers
+    //
+    private string sdlGetError()
+    {
+        import std.conv: to;
+        return to!string(SDL_GetError());
+    }
 
     //
     // Core subsystem
@@ -31,9 +38,12 @@ version(HasSDL2)
         /// Initializes the subsystem.
         public static void initialize()
         {
+            import std.conv: to;
+
             DerelictSDL2.load();
             DerelictGL3.load();
-            enforce(SDL_Init(0) == 0); // TODO: Do proper error handling
+            if (SDL_Init(0) < 0)
+                throw new BackendInitializationException(sdlGetError());
         }
 
         /// Shuts the subsystem down.
@@ -103,7 +113,9 @@ version(HasSDL2)
                 dp.height,
                 flags);
 
-            enforce(_window !is null); // TODO: Error handling!
+            if (_window is null)
+                throw new DisplayCreationException(sdlGetError());
+
 
             scope(failure)
                 SDL_DestroyWindow(_window);
@@ -114,7 +126,8 @@ version(HasSDL2)
 
             // Create the OpenGL context
             _context = SDL_GL_CreateContext(_window);
-            enforce(_context !is null); // TODO: Error handling!
+            if (_context is null)
+                throw new DisplayCreationException(sdlGetError());
 
             scope(failure)
                 SDL_GL_DeleteContext(_context);
@@ -124,7 +137,8 @@ version(HasSDL2)
             DerelictGL3.reload();
 
             // Enable VSync (TODO: Failing here shouldn't be an error. Log?)
-            enforce (SDL_GL_SetSwapInterval(1) == 0);
+            if (SDL_GL_SetSwapInterval(1) != 0)
+                throw new DisplayCreationException(sdlGetError());
         }
 
         /// Destroys the Display.
@@ -189,7 +203,8 @@ version(HasSDL2)
         /// Initializes the subsystem.
         public void initialize()
         {
-            enforce(SDL_InitSubSystem(SDL_INIT_VIDEO) == 0); // TODO: Proper error handling.
+            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+                throw new BackendInitializationException(sdlGetError());
         }
 
         /// Shuts the subsystem down.

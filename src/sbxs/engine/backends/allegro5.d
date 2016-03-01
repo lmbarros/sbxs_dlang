@@ -14,7 +14,6 @@ module sbxs.engine.backends.allegro5;
 
 version(HasAllegro5)
 {
-    import std.exception: enforce; // TODO: Use proper error handling
     import derelict.allegro5.allegro;
     import derelict.opengl3.gl3;
     import sbxs.engine.backend;
@@ -43,7 +42,10 @@ version(HasAllegro5)
                 DerelictAllegro5.load();
             }
             DerelictGL3.load();
-            enforce(al_install_system(ALLEGRO_VERSION_INT, null)); // TODO: Do proper error handling
+
+            const success = al_install_system(ALLEGRO_VERSION_INT, null);
+            if (!success)
+                throw new BackendInitializationException();
         }
 
         /// Shuts the subsystem down.
@@ -88,7 +90,8 @@ version(HasAllegro5)
             // TODO: Ensure that OpenGL is used.
             // TODO: Take `dp` into account for real.
             _display = al_create_display(dp.width, dp.height);
-            enforce(_display !is null); // TODO: Proper error handling
+            if (_display is null)
+                throw new DisplayCreationException();
 
             scope(failure)
                 al_destroy_display(_display);
