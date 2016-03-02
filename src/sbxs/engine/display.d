@@ -105,7 +105,7 @@ public struct DisplayParams
  * a window or "a full screen". I try to not assume anything regarding
  * what rendering APIs are supported and used under the hood. However,
  * given my background knowledge and my interest in cross-platform
- * development, I will probably use OpenGL in all my concrete OpenGL
+ * development, I will probably use OpenGL in all my concrete back end
  * implementations.
  */
 public enum isDisplay(T) =
