@@ -47,7 +47,7 @@ public enum WindowingMode
  * settings, and even which ones to support. Also, there are some interactions
  * between these settings, which I'll not document here (one example: `width`
  * and `height` are ignored for a Display created as
- * `WindowingMode.fakeFulllScreen`.).
+ * `WindowingMode.fakeFullScreen`.).
  */
 
 public struct DisplayParams
