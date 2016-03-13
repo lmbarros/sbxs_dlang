@@ -12,6 +12,7 @@ import std.traits;
 import sbxs.engine.display;
 import sbxs.error.exception;
 
+
 //
 // Exceptions
 //
@@ -132,6 +133,10 @@ public enum isDisplayBE(T) =
     && __traits(compiles, T.init.initialize())
     && __traits(compiles, T.init.shutdown())
 
+    // Must provide a way to swap the buffers of all displays
+    && hasMember!(T, "swapAllBuffers")
+    && __traits(compiles, T.init.swapAllBuffers())
+
     // Must provide a `Display` type, which implements the Display interface.
     && hasMember!(T, "Display")
     && is(T.Display)
@@ -141,6 +146,38 @@ public enum isDisplayBE(T) =
     && hasMember!(T, "createDisplay")
     && is(ReturnType!(T.createDisplay) == T.Display*)
     && __traits(compiles, T.init.createDisplay(DisplayParams.init))
+;
+
+
+/// Checks if something implements the display back end interface.
+public enum implementsDisplayBE(T) =
+    // Has a `display` member...
+    hasMember!(T, "display")
+
+    //... which implements the display back end interface.
+    && isDisplayBE!(typeof(T.display))
+;
+
+
+
+//
+// Events subsystem
+//
+public enum isEventsBE =
+    // Must be implemented as a `struct`.
+    is(T == struct)
+
+    // TODO: add stuff here!
+;
+
+
+/// Checks if something implements the events back end interface.
+public enum implementsEventsBE(T) =
+    // Has a `events` member...
+    hasMember!(T, "events")
+
+    //... which implements the core back end interface.
+    && isEventsBE!(typeof(T.events))
 ;
 
 

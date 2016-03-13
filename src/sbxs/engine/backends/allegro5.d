@@ -202,6 +202,13 @@ version(HasAllegro5)
             _displays.reserve(numDisplays);
         }
 
+        /// Swap the buffers of all Displays.
+        public void swapAllBuffers()
+        {
+            foreach (ref display; _displays)
+                display.swapBuffers();
+        }
+
         /**
          * Creates and returns a Display.
          *

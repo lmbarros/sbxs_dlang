@@ -14,22 +14,48 @@ void main()
 {
     import std.stdio;
     import sbxs.engine.engine;
+    import sbxs.engine.events;
     import sbxs.engine.display;
     import sbxs.engine.backends.sdl2;
 
-    Engine!SDL2Backend engine;
+    alias Engine_t = Engine!SDL2Backend;
+
+    Engine_t engine;
     engine.initialize();
     scope(exit)
         engine.shutdown();
 
     writeln("Hello from the SDL2 Maze example!");
 
-    writefln("Now it is %s...", engine.core.getTime());
-    engine.core.sleep(0.2);
-    writefln("...and now it is %s.", engine.core.getTime());
+    engine.events.addEventHandler(
+        delegate(const Engine_t.Event* event)
+        {
+            import core.stdc.stdlib: exit;
+            if (event.type == EventType.keyUp)
+            {
+                writefln("KEY UP!");
+                if (event.keyUpKeyCode == Engine_t.KeyCode.Escape)
+                {
+                    writefln("PRESSED ESC!");
+                    exit(0);
+                }
+            }
+            return false;
+        },
+        0 // prio
+    );
 
     DisplayParams dp;
     dp.title = "SDL 2 Maze";
     auto d = engine.display.createDisplay(dp);
-    engine.core.sleep(3.0);
+
+    while(engine.core.getTime() < 5.0)
+    {
+        engine.events.tick(0.2);
+        engine.events.draw(0.2);
+        engine.core.sleep(0.2);
+        writefln("Now it is %s...", engine.core.getTime());
+    }
+
+    writefln("Leaving after 5 seconds.");
 }
