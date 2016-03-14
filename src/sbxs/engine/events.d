@@ -17,11 +17,17 @@ public enum EventType
     /// The clock ticked. Kinda like the heartbeat of the engine.
     tick,
 
+    /// An app state event; used internally by the engine, don't mess with it.
+    appState,
+
     /// A keyboard key was released.
     keyUp,
 
     /// The mouse pointer has moved.
     mouseMove,
+
+    /// An event type that is unknown to the engine.
+    unknown,
 }
 
 

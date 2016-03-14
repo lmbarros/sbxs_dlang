@@ -142,8 +142,6 @@ version(HasSDL2)
     /// Back end Display subsystem, based on the SDL 2 library.
     public struct SDL2DisplayBE
     {
-        import sbxs.containers.nc_array: NCArray;
-
         /// Initializes the subsystem.
         public void initialize()
         {
@@ -154,47 +152,14 @@ version(HasSDL2)
         /// Shuts the subsystem down.
         public void shutdown() nothrow @nogc
         {
-            _displays.clear();
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }
 
-        /**
-         * Reserve in the internal data structures enough memory for storing
-         * `numDisplays` Displays.
-         *
-         * You must call this before calling `createDisplay()` if you intend to
-         * create more than one Display.
-         *
-         * TODO: This shouldn't be part of the back end-specific API!
-         */
-        public void reserveDisplays(size_t numDisplays)
+        /// Creates a Display and `insertBack()`s it into `container`.
+        public void createDisplay(C)(DisplayParams dp, ref C container)
         {
-            _displays.reserve(numDisplays);
+            container.insertBack(dp);
         }
-
-        /// Creates and returns a Display.
-        public Display* createDisplay(DisplayParams dp)
-        {
-            if (_displays.capacity == 0)
-                _displays.reserve(1);
-
-            assert(_displays.capacity > _displays.length,
-                "Call `reserveDisplays` if you want to create more than one Display.");
-
-            _displays.insertBack(dp);
-
-            return &_displays.back();
-        }
-
-        /// Swap the buffers of all Displays.
-        public void swapAllBuffers()
-        {
-            foreach (ref display; _displays)
-                display.swapBuffers();
-        }
-
-        /// The Displays managed by this back end.
-        private NCArray!Display _displays;
 
         /// The type used as Display.
         public alias Display = SDL2Display;

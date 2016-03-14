@@ -100,7 +100,7 @@ public enum isCoreBE(T) =
     && __traits(compiles, T.init.shutdown())
 
     // Must provide a way to get the current time, as the number of
-    // seconds passed since some arbitrary epoch.
+    // seconds passed since the program started running.
     && __traits(compiles, { double t = T.init.getTime(); })
 
     // Must provide a way to make the current thread sleep for a given
@@ -133,19 +133,16 @@ public enum isDisplayBE(T) =
     && __traits(compiles, T.init.initialize())
     && __traits(compiles, T.init.shutdown())
 
-    // Must provide a way to swap the buffers of all displays
-    && hasMember!(T, "swapAllBuffers")
-    && __traits(compiles, T.init.swapAllBuffers())
-
     // Must provide a `Display` type, which implements the Display interface.
     && hasMember!(T, "Display")
     && is(T.Display)
     && isDisplay!(T.Display)
 
+    // TODO: xxxxxxxxxxxxxxxxxxxxxxx update this!
     // Must provide a way to create Displays.
     && hasMember!(T, "createDisplay")
-    && is(ReturnType!(T.createDisplay) == T.Display*)
-    && __traits(compiles, T.init.createDisplay(DisplayParams.init))
+    //&& is(ReturnType!(T.createDisplay) == T.Display*)
+    //&& __traits(compiles, T.init.createDisplay(DisplayParams.init))
 ;
 
 
@@ -163,10 +160,9 @@ public enum implementsDisplayBE(T) =
 //
 // Events subsystem
 //
-public enum isEventsBE =
+public enum isEventsBE(T) =
     // Must be implemented as a `struct`.
     is(T == struct)
-
     // TODO: add stuff here!
 ;
 

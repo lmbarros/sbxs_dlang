@@ -27,7 +27,7 @@ void main()
 
     writeln("Hello from the SDL2 Maze example!");
 
-    engine.events.addEventHandler(
+    engine.addEventHandler(
         delegate(const Engine_t.Event* event)
         {
             import core.stdc.stdlib: exit;
@@ -47,14 +47,14 @@ void main()
 
     DisplayParams dp;
     dp.title = "SDL 2 Maze";
-    auto d = engine.display.createDisplay(dp);
+    auto d = engine.createDisplay(dp);
 
-    while(engine.core.getTime() < 5.0)
+    while(engine.getTime() < 5.0)
     {
-        engine.events.tick(0.2);
-        engine.events.draw(0.2);
-        engine.core.sleep(0.2);
-        writefln("Now it is %s...", engine.core.getTime());
+        engine.tick(0.2);
+        engine.draw(0.2);
+        engine.sleep(0.2);
+        writefln("Now it is %s...", engine.getTime());
     }
 
     writefln("Leaving after 5 seconds.");

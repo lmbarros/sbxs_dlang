@@ -23,7 +23,7 @@ version(HasSDL2)
         {
             core.initialize();
             display.initialize();
-            events.initialize(&this);
+            events.initialize();
         }
 
         /// Shuts the back end down.
@@ -41,11 +41,11 @@ version(HasSDL2)
         public SDL2DisplayBE display;
 
         /// The Events subsystem.
-        public SDL2EventsBE!SDL2Backend events;
+        public SDL2EventsBE events;
 
         // TODO: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        public alias Event = SDL2EventsBE!SDL2Backend.Event;
-        public alias KeyCode= SDL2EventsBE!SDL2Backend.KeyCode;
+        public alias Event = SDL2EventsBE.Event;
+        public alias KeyCode = SDL2EventsBE.KeyCode;
     }
 
     static assert(isBackend!SDL2Backend);
