@@ -135,3 +135,55 @@ public enum isDisplay(T) =
     // pretend to be double buffered).
     && __traits(compiles, T.init.swapBuffers())
 ;
+
+
+/**
+ * Implementation of the Display engine subsystem. This is a `mixin template`
+ * just to allow me to easily (should I say "lazily"?) split the engine
+ * implementation in multiple files.
+ */
+mixin template DisplaySubsystem(BE)
+{
+    // xxxxxxxxxxxxxx TODO: Doc me!
+    public alias Display = _backend.display.Display;
+
+    /**
+     * Reserve in the internal data structures enough memory for storing
+     * `numDisplays` Displays.
+     *
+     * You must call this before calling `createDisplay()` if you intend to
+     * create more than one Display.
+     *
+     * TODO: This shouldn't be necessary, ideally. At least, I should
+     *     document why is needed (because reallocation would invalidate
+     *     pointers to Displays).
+     */
+    public void reserveDisplays(size_t numDisplays)
+    {
+        _displays.reserve(numDisplays);
+    }
+
+    /// Creates and returns a Display.
+    public Display* createDisplay(DisplayParams dp)
+    {
+        if (_displays.capacity == 0)
+            _displays.reserve(1);
+
+        // xxxxxxxxxxx TODO: Is this `assert()` correct?!
+        assert(_displays.capacity > _displays.length,
+            "Call `reserveDisplays` if you want to create more than one Display.");
+
+        _backend.display.createDisplay(dp, _displays);
+        return &_displays.back();
+    }
+
+    /// Swap the buffers of all Displays.
+    private void swapAllBuffers()
+    {
+        foreach (ref display; _displays)
+            display.swapBuffers();
+    }
+
+    /// The Displays managed by this back end.
+    private NCArray!Display _displays;
+}

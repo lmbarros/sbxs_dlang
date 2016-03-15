@@ -42,10 +42,6 @@ version(HasSDL2)
 
         /// The Events subsystem.
         public SDL2EventsBE events;
-
-        // TODO: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        public alias Event = SDL2EventsBE.Event;
-        public alias KeyCode = SDL2EventsBE.KeyCode;
     }
 
     static assert(isBackend!SDL2Backend);
