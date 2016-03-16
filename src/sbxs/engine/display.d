@@ -144,35 +144,12 @@ public enum isDisplay(T) =
  */
 mixin template DisplaySubsystem(BE)
 {
-    // xxxxxxxxxxxxxx TODO: Doc me!
-    public alias Display = _backend.display.Display;
-
-    /**
-     * Reserve in the internal data structures enough memory for storing
-     * `numDisplays` Displays.
-     *
-     * You must call this before calling `createDisplay()` if you intend to
-     * create more than one Display.
-     *
-     * TODO: This shouldn't be necessary, ideally. At least, I should
-     *     document why is needed (because reallocation would invalidate
-     *     pointers to Displays).
-     */
-    public void reserveDisplays(size_t numDisplays)
-    {
-        _displays.reserve(numDisplays);
-    }
+    /// Handy alias to the Display type defined by the back end.
+    private alias Display = _backend.display.Display;
 
     /// Creates and returns a Display.
     public Display* createDisplay(DisplayParams dp)
     {
-        if (_displays.capacity == 0)
-            _displays.reserve(1);
-
-        // xxxxxxxxxxx TODO: Is this `assert()` correct?!
-        assert(_displays.capacity > _displays.length,
-            "Call `reserveDisplays` if you want to create more than one Display.");
-
         _backend.display.createDisplay(dp, _displays);
         return &_displays.back();
     }

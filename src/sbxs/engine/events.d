@@ -11,20 +11,29 @@ module sbxs.engine.events;
 
 /**
  * The possible types of events.
+ *
+ * TODO: This list is obviously incomplete. I am focusing at the infrastructure
+ *     right now.
  */
 public enum EventType
 {
     /// The clock ticked. Kinda like the heartbeat of the engine.
     tick,
 
-    /// An app state event; used internally by the engine, don't mess with it.
-    appState,
+    /**
+     * The screen shall b e redrawn; all drawing shall happen in response to
+     * `draw` events.
+     */
+    draw,
 
     /// A keyboard key was released.
     keyUp,
 
     /// The mouse pointer has moved.
     mouseMove,
+
+    /// An app state event; used internally by the engine, don't mess with it.
+    appState,
 
     /// An event type that is unknown to the engine.
     unknown,
@@ -81,9 +90,12 @@ public enum isEvent(T) =
  */
 mixin template EventsSubsystem(BE)
 {
-    // TODO: Doc me xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    /// An Event, as defined by the back end in use.
     public alias Event = BE.events.Event;
+
+    /// The key codes, as defined by the back end in use.
     public alias KeyCode = BE.events.KeyCode;
+
     /**
      * A low-level event handler function.
      *
@@ -100,6 +112,7 @@ mixin template EventsSubsystem(BE)
      *
      */
     public alias EventHandler = bool delegate(const Event* event);
+
     /**
      * Register a given `EventHandler` with the Event subsystem, with a
      * given priority.
@@ -143,7 +156,10 @@ mixin template EventsSubsystem(BE)
         return _eventHandlers.length < lenBefore;
     }
 
-    // xxxxxxxxxxxxxx TODO: Doc me!
+    /**
+     * An entry in a list of event handlers: contains the event handler itself
+     * and its priority.
+     */
     private struct EventHandlerEntry
     {
         /// The event handler itself.
@@ -153,20 +169,44 @@ mixin template EventsSubsystem(BE)
         public int prio;
     }
 
-   /**
-    * This must be called from the main game loop to indicate that a "tick"
-    * has happened.
-    *
-    * This will trigger a tick event and will cause all other input events
-    * to be processed.
-    *
-    * Ticks are the game logic heartbeats. Tick handlers are the usual
-    * places where the game state is updated.
-    *
-    * Parameters:
-    *     deltaTimeInSecs = The tick time, in seconds, elapsed since the
-    *         last time this function was called.
-    */
+    /**
+     * Calls the registered event handlers to handle a given event.
+     *
+     * Parameters:
+     *     event = The event to be handled.
+     */
+    private bool callEventHandlers(const ref Event event)
+    {
+        auto eventAlreadyHandled = false;
+
+        // Give global event handlers a chance to handle the event
+        foreach (handlerEntry; _eventHandlers)
+        {
+            if (handlerEntry.handler(&event))
+                return true;
+        }
+
+        //// Let 'AppState'-specific event handlers handle the event
+        //if (!eventAlreadyHandled && numAppStates > 0 && _appStates.back.handle(event))
+        //    break;
+
+        return false;
+    }
+
+    /**
+     * This must be called from the main game loop to indicate that a "tick"
+     * has happened.
+     *
+     * This will trigger a tick event and will cause all other input events
+     * to be processed.
+     *
+     * Ticks are the game logic heartbeats. Tick handlers are the usual
+     * places where the game state is updated.
+     *
+     * Parameters:
+     *     deltaTimeInSecs = The tick time, in seconds, elapsed since the
+     *         last time this function was called.
+     */
     public void tick(double deltaTimeInSecs)
     {
         // Update tick time, re-sync drawing time with it
@@ -190,21 +230,7 @@ mixin template EventsSubsystem(BE)
             }
             else
             {
-                auto eventAlreadyHandled = false;
-
-                // Give global event handlers a chance to handle the event
-                foreach (handlerEntry; _eventHandlers)
-                {
-                    if (handlerEntry.handler(&event))
-                    {
-                        eventAlreadyHandled = true;
-                        break;
-                    }
-                }
-
-                //// Let 'AppState'-specific event handlers handle the event
-                //if (!eventAlreadyHandled && numAppStates > 0 && _appStates.back.handle(event))
-                //    break;
+                callEventHandlers(event);
             }
         }
     }
@@ -212,9 +238,6 @@ mixin template EventsSubsystem(BE)
     /**
      * This must be called from the main game loop to indicate that a new
      * frame must be drawn.
-     *
-     * TODO: xxxxxxxxxxxxxxxxxxxxxxx "Causes a draw event to be generated".
-     *     Must think about it a bit; drawing will be special, will it not?
      *
      * Causes a draw event to be generated, and all drawing should be made
      * in response to draw events.
@@ -225,7 +248,7 @@ mixin template EventsSubsystem(BE)
      */
     public void draw(double deltaTimeInSecs)
     {
-        /*
+        /* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         // Return immediately if we are out of 'AppState's. (This happens when
         // exiting the program.)
         if (numAppStates == 0)
@@ -235,19 +258,19 @@ mixin template EventsSubsystem(BE)
         // Update the drawing time
         _drawingTimeInSecs += deltaTimeInSecs;
 
-        /*
-        // Call draw() on the current App State
-        const timeSinceTick = _drawingTime - _tickTime;
-        _appStates.back.onDraw(deltaTime, _drawingTime, timeSinceTick);
-        */
+        const timeSinceTickInSecs = _drawingTimeInSecs - _tickTimeInSecs;
 
-        // TODO: xxxxxxxxxxxxxxxxxx This will method exist only if a Display
-        //     subsystem exists? Maybe not, I could draw to a console...
-        //     Anyway, swapAllBuffers() will be called only if a Display back
-        //     end exists.
-        //
-        // And flip the buffers
-        swapAllBuffers();
+        // Call event handlers so that they can perform the drawing
+        const drawEvent = _backend.events.makeDrawEvent(
+            deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
+
+        callEventHandlers(drawEvent);
+
+        // And flip the buffers (if our back end implements the display subsystem)
+        static if (implementsDisplayBE!BE)
+        {
+            swapAllBuffers();
+        }
     }
 
     /**

@@ -40,6 +40,17 @@ void main()
                     exit(0);
                 }
             }
+            else if (event.type == EventType.tick)
+            {
+                writeln("Tick!");
+            }
+            else if (event.type == EventType.draw)
+            {
+                import derelict.opengl3.gl3;
+                import std.random;
+                glClearColor(uniform01(), uniform01(), uniform01(), 1.0);
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
             return false;
         },
         0 // prio
