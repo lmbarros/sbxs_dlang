@@ -54,16 +54,16 @@ version(HasSDL2)
                 throw new BackendInitializationException(sdlGetError());
 
             // Register custom events
-            firstUserEventType = SDL_RegisterEvents(numUserEvents);
+            const firstUserEventType = SDL_RegisterEvents(numUserEvents);
             if (firstUserEventType == Uint32.max)
             {
                 throw new BackendInitializationException(
                     "Error allocating event types for the engine.");
             }
 
-            eventTypeTick = firstUserEventType;
-            eventTypeDraw = firstUserEventType + 1;
-            eventTypeAppState = firstUserEventType + 2;
+            sdlEventTypeTick = firstUserEventType;
+            sdlEventTypeDraw = firstUserEventType + 1;
+            sdlEventTypeAppState = firstUserEventType + 2;
 
             // Allocate memory for `_tickEventData`
             import core.stdc.stdlib: malloc;
@@ -98,6 +98,27 @@ version(HasSDL2)
         }
 
         /**
+         * Creates and returns one of these SDL events used internally by the
+         * engine.
+         *
+         * Parameters:
+         *     eventType = The type of event to create.
+         *     data = The data that will be assigned to `user.data1`.
+         *
+         * Returns: The created event.
+         */
+        private SDL_Event makeSDLEvent(Uint32 eventType, void* data) nothrow @nogc
+        {
+            import core.stdc.string: memset;
+
+            SDL_Event event;
+            memset(&event, SDL_Event.sizeof, 0);
+            event.type = eventType;
+            event.user.data1 = data;
+            return event;
+        }
+
+        /**
          * Enqueues a tick event.
          *
          * Parameters:
@@ -107,14 +128,9 @@ version(HasSDL2)
          */
         public void enqueueTickEvent(double deltaTimeInSecs, double tickTimeInSecs) nothrow @nogc
         {
-            import core.stdc.string: memset;
-
-            SDL_Event tickEvent;
-            memset(&tickEvent, SDL_Event.sizeof, 0);
             _tickEventData.deltaTimeInSecs = deltaTimeInSecs;
             _tickEventData.tickTimeInSecs = tickTimeInSecs;
-            tickEvent.type = eventTypeTick;
-            tickEvent.user.data1 = _tickEventData;
+            auto tickEvent = makeSDLEvent(sdlEventTypeTick, _tickEventData);
             const rc = SDL_PushEvent(&tickEvent);
             if (rc != 1)
             {
@@ -123,7 +139,7 @@ version(HasSDL2)
         }
 
         /**
-         * Enqueues a draw event.
+         * Creates and returns a draw event.
          *
          * Parameters:
          *     deltaTimeInSecs = The time elapsed, since the last draw event,
@@ -132,29 +148,17 @@ version(HasSDL2)
          *         since the program started to run.
          *     timeSinceTickInSecs = The time elapsed since the lastest tick
          *         event, in seconds.
+         *
+         * Returns: A draw event.
          */
         public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
                                    double timeSinceTickInSecs) nothrow @nogc
         {
-            // TODO: Get rid of replication with `enqueueTickEvent()`. xxxxxxxxxxxxxxxxxxxxxxxxxxx
-            import core.stdc.string: memset;
-
-            SDL_Event drawEvent;
-            memset(&drawEvent, SDL_Event.sizeof, 0);
-
             _drawEventData.deltaTimeInSecs = deltaTimeInSecs;
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            drawEvent.type = eventTypeDraw;
-            drawEvent.user.data1 = _drawEventData;
-            const rc = SDL_PushEvent(&drawEvent);
-            if (rc != 1)
-            {
-                // TODO: Do what on error? abort? log only?
-            }
-
-            return Event(drawEvent);
+            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData));
         }
 
         /**
@@ -219,8 +223,8 @@ version(HasSDL2)
             {
                 switch (_event.type)
                 {
-                    case eventTypeDraw: return EventType.draw;
-                    case eventTypeTick: return EventType.tick;
+                    case sdlEventTypeDraw: return EventType.draw;
+                    case sdlEventTypeTick: return EventType.tick;
                     case SDL_KEYUP: return EventType.keyUp;
                     default: return EventType.unknown;
                 }
@@ -229,7 +233,7 @@ version(HasSDL2)
             // xxxxxxxxxxxxx TODO: Doc me (er, make it sane first!)
             public @property double tickTime() const nothrow @nogc
             {
-                assert(_event.common.type == eventTypeTick); // xxxxxx && user.code == bla
+                assert(_event.common.type == sdlEventTypeTick); // xxxxxx && user.code == bla
                 return _event.user.code; // xxxxxxxxxxxxxxxxxx
             }
 
@@ -292,17 +296,14 @@ version(HasSDL2)
         /// The number of SDL event types to reserve for the engine.
         private enum numUserEvents = 8;
 
-        /// The ID of the first SDL event type allocated for the engine.
-        private Uint32 firstUserEventType;
-
         /// Event type used for tick events.
-        public static Uint32 eventTypeTick;
+        public static Uint32 sdlEventTypeTick;
 
         /// Event type used for draw events.
-        public static Uint32 eventTypeDraw;
+        public static Uint32 sdlEventTypeDraw;
 
         /// Event type used for app state events.
-        public static Uint32 eventTypeAppState;
+        public static Uint32 sdlEventTypeAppState;
     }
 
     static assert(isEventsBE!SDL2EventsBE);
