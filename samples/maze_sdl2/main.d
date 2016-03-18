@@ -34,7 +34,7 @@ void main()
             if (event.type == EventType.keyUp)
             {
                 writefln("KEY UP!");
-                if (event.keyUpKeyCode == Engine_t.KeyCode.Escape)
+                if (event.keyUpKeyCode == Engine_t.KeyCode.escape)
                 {
                     writefln("PRESSED ESC!");
                     exit(0);

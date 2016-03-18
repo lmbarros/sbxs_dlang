@@ -185,19 +185,6 @@ version(HasSDL2)
             return gotEvent;
         }
 
-        /// Key codes; they are codes that represent keyboard keys, you know.
-        public enum KeyCode: SDL_Keycode
-        {
-            Escape = SDLK_ESCAPE,
-            Return = SDLK_RETURN,
-            Space = SDLK_SPACE,
-            F1 = SDLK_F1,
-            A = SDLK_a,
-            N1 = SDLK_1,
-            NumLock = SDLK_NUMLOCKCLEAR,
-            KPEnter = SDLK_KP_ENTER,
-        }
-
         /**
          * An event.
          *
@@ -304,6 +291,77 @@ version(HasSDL2)
 
         /// Event type used for app state events.
         public static Uint32 sdlEventTypeAppState;
+
+        /**
+         * Key codes.
+         *
+         * These are codes that represent keyboard keys, you know.
+         *
+         * Overall, names here tend to be a bit PC-centric, as this is what I
+         * use. No big deal, I guess.
+         *
+         * `_0` through `_1` represent the number keys from 0 to 1 in the main
+         * section of the keyboard (usually right under the function keys).
+         * Keys on the numeric key pad are prefixed by `kp`.
+         *
+         * `_return` is the "Return" key on the main section of the keyboard;
+         * `kpEnter` is the one on the numeric keypad.
+         */
+        public enum KeyCode: SDL_Keycode
+        {
+            q = SDLK_q,  w = SDLK_w,  e = SDLK_e,  r = SDLK_r,
+            t = SDLK_t,  y = SDLK_y,  u = SDLK_u,  i = SDLK_i,
+            o = SDLK_o,  p = SDLK_p,  a = SDLK_a,  s = SDLK_s,
+            d = SDLK_d,  f = SDLK_f,  g = SDLK_g,  h = SDLK_h,
+            j = SDLK_j,  k = SDLK_k,  l = SDLK_l,  z = SDLK_z,
+            x = SDLK_x,  c = SDLK_c,  v = SDLK_v,  b = SDLK_b,
+            n = SDLK_n,  m = SDLK_m,
+
+            _1 = SDLK_1,  _2 = SDLK_2,  _3 = SDLK_3,  _4 = SDLK_4,
+            _5 = SDLK_5,  _6 = SDLK_6,  _7 = SDLK_7,  _8 = SDLK_8,
+            _9 = SDLK_9,  _0 = SDLK_0,
+
+            f1 = SDLK_F1,  f2 = SDLK_F2,    f3 = SDLK_F3,    f4 = SDLK_F4,
+            f5 = SDLK_F5,  f6 = SDLK_F6,    f7 = SDLK_F7,    f8 = SDLK_F8,
+            f9 = SDLK_F9,  f10 = SDLK_F10,  f11 = SDLK_F11,  f12 = SDLK_F12,
+
+            left = SDLK_LEFT,  right = SDLK_RIGHT,  up = SDLK_UP,  down = SDLK_DOWN,
+
+            lShift = SDLK_LSHIFT,   rShift = SDLK_LSHIFT,
+            lCtrl = SDLK_LCTRL,     rCtrl = SDLK_RCTRL,
+            lWin = SDLK_LGUI,       rWin = SDLK_RGUI,
+            lAlt = SDLK_LALT,       rAlt = SDLK_RALT,
+            menu = SDLK_MENU,
+
+            space = SDLK_SPACE,          _return = SDLK_RETURN,
+            escape = SDLK_ESCAPE,        tab = SDLK_TAB,
+            backspace = SDLK_BACKSPACE,
+
+            printScreen = SDLK_PRINTSCREEN,    scrollLock = SDLK_SCROLLLOCK,
+            pause = SDLK_PAUSE,                capsLock = SDLK_CAPSLOCK,
+
+            backquote = SDLK_BACKQUOTE,      minus = SDLK_MINUS,
+            equals = SDLK_EQUALS,            backslash = SDLK_BACKSLASH,
+            openBracket = SDLK_LEFTBRACKET,  closeBracket = SDLK_RIGHTBRACKET,
+            openParen = SDLK_LEFTPAREN,      closeParen = SDLK_RIGHTPAREN,
+            semicolon = SDLK_SEMICOLON,      quote = SDLK_QUOTE,
+            comma = SDLK_COMMA,              period = SDLK_PERIOD,
+            slash = SDLK_SLASH,
+
+            home = SDLK_HOME,       end = SDLK_END,
+            pageUp = SDLK_PAGEUP,   pageDown = SDLK_PAGEDOWN,
+
+            numLock = SDLK_NUMLOCKCLEAR,
+
+            kp0 = SDLK_KP_0,  kp1 = SDLK_KP_1,  kp2 = SDLK_KP_2,  kp3 = SDLK_KP_3,
+            kp4 = SDLK_KP_4,  kp5 = SDLK_KP_5,  kp6 = SDLK_KP_6,  kp7 = SDLK_KP_7,
+            kp8 = SDLK_KP_8,  kp9 = SDLK_KP_9,
+
+            kpDivide = SDLK_KP_DIVIDE,  kpMultiply = SDLK_KP_MULTIPLY,
+            kpMinus = SDLK_KP_MINUS,    kpPlus = SDLK_KP_PLUS,
+            kpPeriod = SDLK_KP_PERIOD,  kpComma = SDLK_KP_COMMA,
+            kpEnter = SDLK_KP_ENTER,
+        }
     }
 
     static assert(isEventsBE!SDL2EventsBE);
