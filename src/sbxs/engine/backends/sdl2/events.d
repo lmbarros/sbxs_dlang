@@ -10,7 +10,6 @@ module sbxs.engine.backends.sdl2.events;
 
 version(HasSDL2)
 {
-
     import derelict.sdl2.sdl;
     import sbxs.engine.backend;
     import sbxs.engine.events;
@@ -202,10 +201,7 @@ version(HasSDL2)
             /// The wrapped `SDL_Event`.
             private SDL_Event _event;
 
-            //
-            // Common
-            //
-
+            /// Returns the event type.
             public @property EventType type() const nothrow @nogc
             {
                 switch (_event.type)
@@ -213,47 +209,67 @@ version(HasSDL2)
                     case sdlEventTypeDraw: return EventType.draw;
                     case sdlEventTypeTick: return EventType.tick;
                     case SDL_KEYUP: return EventType.keyUp;
+                    case SDL_MOUSEMOTION: return EventType.mouseMove;
                     default: return EventType.unknown;
                 }
             }
 
-            // xxxxxxxxxxxxx TODO: Doc me (er, make it sane first!)
-            public @property double tickTime() const nothrow @nogc
+            /**
+             * Returns the tick time, in seconds
+             *
+             * Valid for: `tick`.
+             */
+            public @property double tickTimeInSecs() const nothrow @nogc
             {
-                assert(_event.common.type == sdlEventTypeTick); // xxxxxx && user.code == bla
-                return _event.user.code; // xxxxxxxxxxxxxxxxxx
+                assert(_event.common.type == sdlEventTypeTick);
+                const pTED = cast(TickEventData*)_event.user.data1;
+                return pTED.tickTimeInSecs;
             }
 
-            //
-            // Tick
-            //
-
-            public @property double tickDeltaTime() const nothrow @nogc
+            /**
+             * Returns the tick time elapsed since the previous `tick` event.
+             *
+             * Valid for: `tick`.
+             */
+            public @property double deltaTimeInSecs() const nothrow @nogc
             {
-                assert(_event.common.type == SDL_USEREVENT); // xxxxxx && user.code == bla
-                return _event.user.code; // xxxxxxxxxxxxxxxx
+                assert(_event.common.type == sdlEventTypeTick);
+                const pTED = cast(TickEventData*)_event.user.data1;
+                return pTED.deltaTimeInSecs;
             }
 
-
-            //
-            // KeyUp
-            //
-            public @property KeyCode keyUpKeyCode() const nothrow @nogc
+            /**
+             * Returns the `KeyCode` for the key generating the event.
+             *
+             * Valid for: `keyUp`.
+             */
+            public @property KeyCode keyCode() const nothrow @nogc
             {
                 assert(_event.common.type == SDL_KEYUP);
                 return cast(KeyCode)(_event.key.keysym.sym);
             }
 
-            //
-            // MouseMove
-            //
-            public @property int mouseMoveX() const nothrow @nogc
+            /**
+             * Returns the horizontal coordinate of the mouse, in pixels.
+             *
+             * Zero is the left side of the Display.
+             *
+             * Valid for: `mouseMove`.
+             */
+            public @property int mouseX() const nothrow @nogc
             {
                 assert(_event.common.type == SDL_MOUSEMOTION);
                 return _event.motion.x;
             }
 
-            public @property int mouseMoveY() const nothrow @nogc
+            /**
+             * Returns the vertical coordinate of the mouse, in pixels.
+             *
+             * Zero is the top side of the Display.
+             *
+             * Valid for: `mouseMove`.
+             */
+            public @property int mouseY() const nothrow @nogc
             {
                 assert(_event.common.type == SDL_MOUSEMOTION);
                 return _event.motion.y;

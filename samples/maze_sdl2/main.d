@@ -34,7 +34,7 @@ void main()
             if (event.type == EventType.keyUp)
             {
                 writefln("KEY UP!");
-                if (event.keyUpKeyCode == Engine_t.KeyCode.escape)
+                if (event.keyCode == Engine_t.KeyCode.escape)
                 {
                     writefln("PRESSED ESC!");
                     exit(0);
@@ -42,7 +42,7 @@ void main()
             }
             else if (event.type == EventType.tick)
             {
-                writeln("Tick!");
+                writefln("Tick: %s, %s!", event.deltaTimeInSecs, event.tickTimeInSecs);
             }
             else if (event.type == EventType.draw)
             {
@@ -50,6 +50,10 @@ void main()
                 import std.random;
                 glClearColor(uniform01(), uniform01(), uniform01(), 1.0);
                 glClear(GL_COLOR_BUFFER_BIT);
+            }
+            else if (event.type == EventType.mouseMove)
+            {
+                writefln("Mouse: %s, %s!", event.mouseX, event.mouseY);
             }
             return false;
         },
