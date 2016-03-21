@@ -41,12 +41,30 @@ version(HasSDL2)
     }
 
 
-    /// Back end Events subsystem, based on the SDL 2 library.
-    public struct SDL2EventsBE
+    /**
+     * Back end Events subsystem, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     BE = The type of the back end.
+     */
+    public struct SDL2EventsBE(BE)
     {
-        /// Initializes the subsystem.
-        public void initialize()
+        /**
+         * Initializes the subsystem.
+         *
+         * Parameters:
+         *     backend = The back end, passed here so that this submodule can
+         *         call its services.
+         */
+        public void initialize(BE* backend)
+        in
         {
+            assert(backend !is null);
+        }
+        body
+        {
+            _backend = backend;
+
             // Initialize the SDL events subsystem
             // TODO: SDL_INIT_JOYSTICK? SDL_INIT_GAMECONTROLLER? (Update `shutdown()` accordingly!)
             if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0)
@@ -157,7 +175,7 @@ version(HasSDL2)
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData));
+            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _backend);
         }
 
         /**
@@ -180,7 +198,7 @@ version(HasSDL2)
             SDL_Event sdlEvent;
             const gotEvent = SDL_PollEvent(&sdlEvent) == 1;
             if (gotEvent)
-                *event = Event(sdlEvent);
+                *event = Event(sdlEvent, _backend);
             return gotEvent;
         }
 
@@ -192,14 +210,25 @@ version(HasSDL2)
          */
         public struct Event
         {
-            /// Constructs the `Event` from an `SDL_Event`.
-            private this(const SDL_Event event) @nogc nothrow
+            /**
+             * Constructs the `Event` from an `SDL_Event`.
+             *
+             * Parameters:
+             *     event = The SDL event which will wrapped by this `Event`.
+             *     backend = The backend where this event ultimately lives in.
+             *
+             */
+            private this(const SDL_Event event, BE* backend) @nogc nothrow
             {
                 this._event = event;
+                this._backend = backend;
             }
 
             /// The wrapped `SDL_Event`.
             private SDL_Event _event;
+
+            /// The events subsystem of the back end used to create this `Event`.
+            private BE* _backend;
 
             /// Returns the event type.
             public @property EventType type() const nothrow @nogc
@@ -227,15 +256,55 @@ version(HasSDL2)
             }
 
             /**
-             * Returns the tick time elapsed since the previous `tick` event.
+             * Returns the time elapsed, in seconds, since the previous event
+             * of the same type.
              *
-             * Valid for: `tick`.
+             * Valid for: `tick`, `draw`.
              */
             public @property double deltaTimeInSecs() const nothrow @nogc
             {
-                assert(_event.common.type == sdlEventTypeTick);
-                const pTED = cast(TickEventData*)_event.user.data1;
-                return pTED.deltaTimeInSecs;
+                switch(_event.common.type)
+                {
+                    case sdlEventTypeTick:
+                    {
+                        const pTED = cast(TickEventData*)_event.user.data1;
+                        return pTED.deltaTimeInSecs;
+                    }
+
+                    case sdlEventTypeDraw:
+                    {
+                        assert(_event.common.type == sdlEventTypeDraw);
+                        const pDED = cast(DrawEventData*)_event.user.data1;
+                        return pDED.deltaTimeInSecs;
+                    }
+
+                    default:
+                        assert(false, "Invalid event type");
+                }
+            }
+
+            /**
+             * Returns the current drawing time, in seconds.
+             *
+             * Valid for: `draw`.
+             */
+            public @property double drawingTimeInSecs() const nothrow @nogc
+            {
+                assert(_event.common.type == sdlEventTypeDraw);
+                const pDED = cast(DrawEventData*)_event.user.data1;
+                return pDED.drawingTimeInSecs;
+            }
+
+            /**
+             * Returns the time elapsed since the last tick event, in seconds.
+             *
+             * Valid for: `draw`.
+             */
+            public @property double timeSinceTickInSecs() const nothrow @nogc
+            {
+                assert(_event.common.type == sdlEventTypeDraw);
+                const pDED = cast(DrawEventData*)_event.user.data1;
+                return pDED.timeSinceTickInSecs;
             }
 
             /**
@@ -247,6 +316,40 @@ version(HasSDL2)
             {
                 assert(_event.common.type == SDL_KEYUP);
                 return cast(KeyCode)(_event.key.keysym.sym);
+            }
+
+            static if (implementsDisplayBE!BE)
+            {
+                /**
+                 * Returns the Display for in which the event was generated.
+                 *
+                 * TODO: Can the return be `null`? IIRC, under certain
+                 *     circumnstance, yes. This hsould be properly documented.
+                 *
+                 * Valid for: `keyUp`, `mouseMove`.
+                 */
+                public @property inout(BE.display.Display*) display() inout nothrow @nogc
+                {
+                    switch(_event.common.type)
+                    {
+                        case SDL_MOUSEMOTION:
+                        {
+                            return _backend.display.windowIDToDisplay(
+                                _event.motion.windowID);
+                        }
+
+                        case SDL_KEYUP:
+                        {
+                            return _backend.display.windowIDToDisplay(
+                                _event.key.windowID);
+                        }
+
+                        default:
+                        {
+                            assert(false, "Invalid event type");
+                        }
+                    }
+                }
             }
 
             /**
@@ -378,8 +481,12 @@ version(HasSDL2)
             kpPeriod = SDLK_KP_PERIOD,  kpComma = SDLK_KP_COMMA,
             kpEnter = SDLK_KP_ENTER,
         }
+
+        /// The back end.
+        private BE* _backend;
     }
 
-    static assert(isEventsBE!SDL2EventsBE);
+    import sbxs.engine.backends.sdl2.backend;
+    static assert(isEventsBE!(SDL2EventsBE!SDL2Backend));
 
 } // version HasSDL2

@@ -133,18 +133,37 @@ version(HasSDL2)
         private SDL_GLContext _context = null;
 
         /// A type for a handle that uniquely identifies a Display.
-        public alias handle_t = uint;
+        // TODO: This would be useful to take the "id to Display" logic to the Engine
+        public alias handle_t = Uint32;
     }
 
     static assert(isDisplay!SDL2Display);
 
 
-    /// Back end Display subsystem, based on the SDL 2 library.
-    public struct SDL2DisplayBE
+    /**
+     * Back end Display subsystem, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     BE = The type of the back end.
+     */
+    public struct SDL2DisplayBE(BE)
     {
-        /// Initializes the subsystem.
-        public void initialize()
+        /**
+         * Initializes the subsystem.
+         *
+         * Parameters:
+         *     backend = The back end, passed here so that this submodule can
+         *         call its services.
+         */
+        public void initialize(BE* backend)
+        in
         {
+            assert(backend !is null);
+        }
+        body
+        {
+            _backend = backend;
+
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
                 throw new BackendInitializationException(sdlGetError());
         }
@@ -159,12 +178,31 @@ version(HasSDL2)
         public void createDisplay(C)(DisplayParams dp, ref C container)
         {
             container.insertBack(dp);
+            auto display = &(container.back());
+            _idToDisplay[SDL_GetWindowID(display._window)] = display;
         }
+
+        /// Convers an SDL window ID to a Display.
+        package inout(Display*) windowIDToDisplay(Uint32 windowID) inout
+        {
+            auto pDisplay = windowID in _idToDisplay;
+            if (pDisplay is null)
+                return null;
+            else
+                return *pDisplay;
+        }
+
+        /// Maps window IDs to Displays.
+        private Display*[Uint32] _idToDisplay;
 
         /// The type used as Display.
         public alias Display = SDL2Display;
+
+        /// The back end.
+        private BE* _backend;
     }
 
-    static assert(isDisplayBE!SDL2DisplayBE);
+    import sbxs.engine.backends.sdl2.backend;
+    static assert(isDisplayBE!(SDL2DisplayBE!SDL2Backend));
 
 } // version HasSDL2

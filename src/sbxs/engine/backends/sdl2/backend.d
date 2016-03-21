@@ -21,9 +21,11 @@ version(HasSDL2)
         /// Initializes the back end.
         public void initialize()
         {
-            core.initialize();
-            display.initialize();
-            events.initialize();
+            // TODO: Ideally, should pass the very engine end here, not the
+            //     back end.
+            core.initialize(&this);
+            display.initialize(&this);
+            events.initialize(&this);
         }
 
         /// Shuts the back end down.
@@ -35,13 +37,13 @@ version(HasSDL2)
         }
 
         /// The core subsystem.
-        public SDL2CoreBE core;
+        public SDL2CoreBE!SDL2Backend core;
 
         /// The Display subsystem.
-        public SDL2DisplayBE display;
+        public SDL2DisplayBE!SDL2Backend display;
 
         /// The Events subsystem.
-        public SDL2EventsBE events;
+        public SDL2EventsBE!SDL2Backend events;
     }
 
     static assert(isBackend!SDL2Backend);

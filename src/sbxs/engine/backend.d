@@ -95,8 +95,9 @@ public enum isCoreBE(T) =
     // Must be implemented as a `struct`.
     is(T == struct)
 
-    // Must provide ways to be initialized and uninitialized.
-    && __traits(compiles, T.init.initialize())
+    // Must provide ways to be initialized and uninitialized. This `null` would
+    // be the actual back end being used.
+    && __traits(compiles, T.init.initialize(null))
     && __traits(compiles, T.init.shutdown())
 
     // Must provide a way to get the current time, as the number of
@@ -129,8 +130,9 @@ public enum isDisplayBE(T) =
     // Must be implemented as a `struct`.
     is(T == struct)
 
-    // Must provide ways to be initialized and uninitialized.
-    && __traits(compiles, T.init.initialize())
+    // Must provide ways to be initialized and uninitialized. This `null` would
+    // be the actual back end being used.
+    && __traits(compiles, T.init.initialize(null))
     && __traits(compiles, T.init.shutdown())
 
     // Must provide a `Display` type, which implements the Display interface.
@@ -163,7 +165,7 @@ public enum implementsDisplayBE(T) =
 public enum isEventsBE(T) =
     // Must be implemented as a `struct`.
     is(T == struct)
-    // TODO: add stuff here!
+    // TODO: add stuff here! xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ;
 
 

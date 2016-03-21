@@ -15,13 +15,29 @@ version(HasSDL2)
     import sbxs.engine.backend;
     import sbxs.engine.backends.sdl2.helpers;
 
-    /// Back end Core subsystem, based on the SDL 2 library.
-    public struct SDL2CoreBE
+    /**
+     * Back end Core subsystem, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     BE = The type of the back end.
+     */
+    public struct SDL2CoreBE(BE)
     {
-        /// Initializes the subsystem.
-        public static void initialize()
+        /**
+         * Initializes the subsystem.
+         *
+         * Parameters:
+         *     backend = The back end, passed here so that this submodule can
+         *         call its services.
+         */
+        public void initialize(BE* backend)
+        in
         {
-            import std.conv: to;
+            assert(backend !is null);
+        }
+        body
+        {
+            _backend = backend;
 
             DerelictSDL2.load();
             DerelictGL3.load();
@@ -30,24 +46,28 @@ version(HasSDL2)
         }
 
         /// Shuts the subsystem down.
-        public static void shutdown() nothrow @nogc
+        public void shutdown() nothrow @nogc
         {
             SDL_Quit();
         }
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
-        public static double getTime() nothrow @nogc
+        public double getTime() nothrow @nogc
         {
             return SDL_GetTicks() / 1000.0;
         }
 
         /// Sleeps the current thread for a given number of seconds.
-        public static void sleep(double timeInSecs) nothrow @nogc
+        public void sleep(double timeInSecs) nothrow @nogc
         {
             SDL_Delay(cast(uint)(timeInSecs * 1000));
         }
+
+        /// The back end.
+        private BE* _backend;
     }
 
-    static assert(isCoreBE!SDL2CoreBE);
+    import sbxs.engine.backends.sdl2.backend;
+    static assert(isCoreBE!(SDL2CoreBE!SDL2Backend));
 
 } // version HasSDL2

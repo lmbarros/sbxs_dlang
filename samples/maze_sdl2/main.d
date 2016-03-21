@@ -53,7 +53,7 @@ void main()
             }
             else if (event.type == EventType.mouseMove)
             {
-                writefln("Mouse: %s, %s!", event.mouseX, event.mouseY);
+                writefln("Mouse: %s x %s, %s!", event.mouseX, event.mouseY, event.display);
             }
             return false;
         },
