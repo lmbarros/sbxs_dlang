@@ -218,6 +218,7 @@ mixin template EventsSubsystem(BE)
 
         // Handle events
         Event event;
+
         while (_backend.events.dequeueEvent(&event))
         {
             // App state events are handled right here by the engine

@@ -11,6 +11,7 @@ module sbxs.engine.backends.sdl2.backend;
 version(HasSDL2)
 {
     import sbxs.engine.backend;
+    import sbxs.engine.engine;
     import sbxs.engine.backends.sdl2.core;
     import sbxs.engine.backends.sdl2.display;
     import sbxs.engine.backends.sdl2.events;
@@ -19,13 +20,11 @@ version(HasSDL2)
     public struct SDL2Backend
     {
         /// Initializes the back end.
-        public void initialize()
+        public void initialize(Engine!SDL2Backend* engine)
         {
-            // TODO: Ideally, should pass the very engine end here, not the
-            //     back end.
-            core.initialize(&this);
-            display.initialize(&this);
-            events.initialize(&this);
+            core.initialize(engine);
+            display.initialize(engine);
+            events.initialize(engine);
         }
 
         /// Shuts the back end down.
@@ -37,13 +36,13 @@ version(HasSDL2)
         }
 
         /// The core subsystem.
-        public SDL2CoreBE!SDL2Backend core;
+        public SDL2CoreBE!(Engine!SDL2Backend) core;
 
         /// The Display subsystem.
-        public SDL2DisplayBE!SDL2Backend display;
+        public SDL2DisplayBE!(Engine!SDL2Backend) display;
 
         /// The Events subsystem.
-        public SDL2EventsBE!SDL2Backend events;
+        public SDL2EventsBE!(Engine!SDL2Backend) events;
     }
 
     static assert(isBackend!SDL2Backend);

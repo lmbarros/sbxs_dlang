@@ -48,8 +48,11 @@ public struct Engine(BE)
     // General stuff
     //
 
+    /// The type used as back end.
+    public alias backendType = BE;
+
     /// The back end.
-    private BE _backend;
+    private backendType _backend;
 
     /**
      * Initializes the engine. This must be called before using the `Engine`.
@@ -58,7 +61,7 @@ public struct Engine(BE)
      */
     public void initialize()
     {
-        _backend.initialize();
+        _backend.initialize(&this);
     }
 
     /**
@@ -78,15 +81,20 @@ public struct Engine(BE)
     //
     // Core subsystem
     //
-    mixin CoreSubsystem!BE;
+    mixin CoreSubsystem!backendType;
 
-    static if (implementsEventsBE!BE)
+    static if (implementsEventsBE!backendType)
     {
-        mixin EventsSubsystem!BE;
+        mixin EventsSubsystem!backendType;
     }
 
-    static if (implementsDisplayBE!BE)
-    {
-        mixin DisplaySubsystem!BE;
-    }
+    // xxxxxxxxxxxxxxxxxxxxxxxxxxx
+    // TODO: These conditional compilations are giving me headache... I should rethink them!
+    //static if (implementsDisplayBE!backendType)
+    //{
+        /// Handy alias to the Display type defined by the back end.
+        private alias Display = backendType.display.Display;
+
+        mixin DisplaySubsystem!backendType;
+    //}
 }

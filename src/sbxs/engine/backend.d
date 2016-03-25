@@ -96,7 +96,7 @@ public enum isCoreBE(T) =
     is(T == struct)
 
     // Must provide ways to be initialized and uninitialized. This `null` would
-    // be the actual back end being used.
+    // be the actual engine being used.
     && __traits(compiles, T.init.initialize(null))
     && __traits(compiles, T.init.shutdown())
 
@@ -131,7 +131,7 @@ public enum isDisplayBE(T) =
     is(T == struct)
 
     // Must provide ways to be initialized and uninitialized. This `null` would
-    // be the actual back end being used.
+    // be the actual engine being used.
     && __traits(compiles, T.init.initialize(null))
     && __traits(compiles, T.init.shutdown())
 
@@ -195,8 +195,9 @@ public enum isBackend(T) =
     // Must be implemented as a `struct`.
     is(T == struct)
 
-    // Must provide ways to be initialized and uninitialized.
-    && __traits(compiles, T.init.initialize())
+    // Must provide ways to be initialized and uninitialized. The `null` passed
+    // here would be the engine using `T` as the back end.
+    && __traits(compiles, T.init.initialize(null))
     && __traits(compiles, T.init.shutdown())
 
     // Must implement the core subsystem.

@@ -144,14 +144,23 @@ public enum isDisplay(T) =
  */
 mixin template DisplaySubsystem(BE)
 {
-    /// Handy alias to the Display type defined by the back end.
-    private alias Display = _backend.display.Display;
-
     /// Creates and returns a Display.
     public Display* createDisplay(DisplayParams dp)
     {
         _backend.display.createDisplay(dp, _displays);
         return &_displays.back();
+    }
+
+    /**
+     * Returns the Display corresponding to a given display handle.
+     *
+     * Return will be `null` if an invalid ID is passed. (This may happen in
+     * not-so-obvious cases, like when a previously existing Display is
+     * destroyed.)
+     */
+    public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
+    {
+        return _backend.display.displayHandleToDisplay(handle);
     }
 
     /// Swap the buffers of all Displays.

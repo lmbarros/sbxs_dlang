@@ -12,6 +12,7 @@
 
 module sbxs.engine.backends.allegro5;
 
+/+
 version(HasAllegro5)
 {
     import derelict.allegro5.allegro;
@@ -274,3 +275,4 @@ version(HasAllegro5)
     static assert(isBackend!Allegro5Backend);
 
 } // version HasAllegro5
++/

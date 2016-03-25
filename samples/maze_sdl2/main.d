@@ -33,7 +33,7 @@ void main()
             import core.stdc.stdlib: exit;
             if (event.type == EventType.keyUp)
             {
-                writefln("KEY UP!");
+                writefln("KEY UP! (%s)", event.display);
                 if (event.keyCode == Engine_t.KeyCode.escape)
                 {
                     writefln("PRESSED ESC!");

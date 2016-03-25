@@ -45,25 +45,24 @@ version(HasSDL2)
      * Back end Events subsystem, based on the SDL 2 library.
      *
      * Parameters:
-     *     BE = The type of the back end.
+     *     E = The type of the engine using this subsystem implementation.
      */
-    public struct SDL2EventsBE(BE)
+    public struct SDL2EventsBE(E)
     {
         /**
          * Initializes the subsystem.
          *
          * Parameters:
-         *     backend = The back end, passed here so that this submodule can
-         *         call its services.
+         *     engine = The engine using this subsystem.
          */
-        public void initialize(BE* backend)
+        public void initialize(E* engine)
         in
         {
-            assert(backend !is null);
+            assert(engine !is null);
         }
         body
         {
-            _backend = backend;
+            _engine = engine;
 
             // Initialize the SDL events subsystem
             // TODO: SDL_INIT_JOYSTICK? SDL_INIT_GAMECONTROLLER? (Update `shutdown()` accordingly!)
@@ -175,7 +174,7 @@ version(HasSDL2)
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _backend);
+            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _engine);
         }
 
         /**
@@ -198,7 +197,7 @@ version(HasSDL2)
             SDL_Event sdlEvent;
             const gotEvent = SDL_PollEvent(&sdlEvent) == 1;
             if (gotEvent)
-                *event = Event(sdlEvent, _backend);
+                *event = Event(sdlEvent, _engine);
             return gotEvent;
         }
 
@@ -211,24 +210,24 @@ version(HasSDL2)
         public struct Event
         {
             /**
-             * Constructs the `Event` from an `SDL_Event`.
+             * Constructs the `Event` from an `SDL_Event` and an Engine.
              *
              * Parameters:
              *     event = The SDL event which will wrapped by this `Event`.
-             *     backend = The backend where this event ultimately lives in.
+             *     engine = The engine where this event ultimately lives in.
              *
              */
-            private this(const SDL_Event event, BE* backend) @nogc nothrow
+            public this(SDL_Event event, E* engine) @nogc nothrow
             {
                 this._event = event;
-                this._backend = backend;
+                this._engine = engine;
             }
 
             /// The wrapped `SDL_Event`.
             private SDL_Event _event;
 
-            /// The events subsystem of the back end used to create this `Event`.
-            private BE* _backend;
+            /// The engine where this event ultimately lives in.
+            private E* _engine;
 
             /// Returns the event type.
             public @property EventType type() const nothrow @nogc
@@ -318,29 +317,29 @@ version(HasSDL2)
                 return cast(KeyCode)(_event.key.keysym.sym);
             }
 
-            static if (implementsDisplayBE!BE)
+            static if (implementsDisplayBE!(E.backendType))
             {
                 /**
                  * Returns the Display for in which the event was generated.
                  *
                  * TODO: Can the return be `null`? IIRC, under certain
-                 *     circumnstance, yes. This hsould be properly documented.
+                 *     circumnstance, yes. This should be properly documented.
                  *
                  * Valid for: `keyUp`, `mouseMove`.
                  */
-                public @property inout(BE.display.Display*) display() inout nothrow @nogc
+                public @property inout(E.Display*) display() inout nothrow @nogc
                 {
                     switch(_event.common.type)
                     {
                         case SDL_MOUSEMOTION:
                         {
-                            return _backend.display.windowIDToDisplay(
+                            return _engine.displayHandleToDisplay(
                                 _event.motion.windowID);
                         }
 
                         case SDL_KEYUP:
                         {
-                            return _backend.display.windowIDToDisplay(
+                            return _engine.displayHandleToDisplay(
                                 _event.key.windowID);
                         }
 
@@ -377,6 +376,8 @@ version(HasSDL2)
                 assert(_event.common.type == SDL_MOUSEMOTION);
                 return _event.motion.y;
             }
+
+            // TODO: Add more mouse stuff.
         }
 
         /**
@@ -482,11 +483,12 @@ version(HasSDL2)
             kpEnter = SDLK_KP_ENTER,
         }
 
-        /// The back end.
-        private BE* _backend;
+        /// The engine using this subsystem.
+        private E* _engine;
     }
 
-    import sbxs.engine.backends.sdl2.backend;
-    static assert(isEventsBE!(SDL2EventsBE!SDL2Backend));
+    import sbxs.engine.backends.sdl2.backend: SDL2Backend;
+    import sbxs.engine.engine: Engine;
+    static assert(isEventsBE!(SDL2EventsBE!(Engine!SDL2Backend)));
 
 } // version HasSDL2

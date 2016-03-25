@@ -19,25 +19,24 @@ version(HasSDL2)
      * Back end Core subsystem, based on the SDL 2 library.
      *
      * Parameters:
-     *     BE = The type of the back end.
+     *     E = The type of the engine using this subsystem implementation.
      */
-    public struct SDL2CoreBE(BE)
+    public struct SDL2CoreBE(E)
     {
         /**
          * Initializes the subsystem.
          *
          * Parameters:
-         *     backend = The back end, passed here so that this submodule can
-         *         call its services.
+         *     engine = The engine using this subsystem.
          */
-        public void initialize(BE* backend)
+        public void initialize(E* engine)
         in
         {
-            assert(backend !is null);
+            assert(engine !is null);
         }
         body
         {
-            _backend = backend;
+            _engine = engine;
 
             DerelictSDL2.load();
             DerelictGL3.load();
@@ -63,8 +62,8 @@ version(HasSDL2)
             SDL_Delay(cast(uint)(timeInSecs * 1000));
         }
 
-        /// The back end.
-        private BE* _backend;
+        /// The engine using this subsystem.
+        private E* _engine;
     }
 
     import sbxs.engine.backends.sdl2.backend;

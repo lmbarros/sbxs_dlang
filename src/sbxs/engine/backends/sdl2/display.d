@@ -60,7 +60,6 @@ version(HasSDL2)
             if (_window is null)
                 throw new DisplayCreationException(sdlGetError());
 
-
             scope(failure)
                 SDL_DestroyWindow(_window);
 
@@ -179,13 +178,14 @@ version(HasSDL2)
         {
             container.insertBack(dp);
             auto display = &(container.back());
-            _idToDisplay[SDL_GetWindowID(display._window)] = display;
+            _handleToDisplay[container.back().handle] = display;
+            import std.stdio; writefln("Created Display with handle = %s", container.back().handle); // xxxxxxxxxxxxxxxxx
         }
 
-        /// Convers an SDL window ID to a Display.
-        package inout(Display*) windowIDToDisplay(Uint32 windowID) inout
+        /// Converts an SDL window ID to a Display.
+        public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
         {
-            auto pDisplay = windowID in _idToDisplay;
+            auto pDisplay = handle in _handleToDisplay;
             if (pDisplay is null)
                 return null;
             else
@@ -193,7 +193,7 @@ version(HasSDL2)
         }
 
         /// Maps window IDs to Displays.
-        private Display*[Uint32] _idToDisplay;
+        private Display*[Display.handle_t] _handleToDisplay;
 
         /// The type used as Display.
         public alias Display = SDL2Display;
