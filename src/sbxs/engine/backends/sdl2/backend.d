@@ -21,8 +21,11 @@ version(HasSDL2)
     /// Engine back end based on the SDL 2 library.
     public struct SDL2Backend
     {
+        /// The type of an Engine using this back end.
+        public alias engineType = Engine!SDL2Backend;
+
         /// The engine using this back end.
-        private Engine!SDL2Backend* _engine;
+        private engineType* _engine;
 
         /**
          * Initializes the back end.
@@ -30,7 +33,7 @@ version(HasSDL2)
          * Parameters:
          *     engine = The engine using this back end.
          */
-        public void initialize(Engine!SDL2Backend* engine)
+        public void initialize(engineType* engine)
         in
         {
             assert(engine !is null);
@@ -58,21 +61,24 @@ version(HasSDL2)
         public void shutdown()
         {
             // Shutdown each subsystem
-            display.shutdown(_engine);
-            events.shutdown(_engine);
-            os.shutdown(_engine);
+            display.shutdown();
+            events.shutdown();
+            os.shutdown();
 
             // Shutdown SDL itself
             SDL_Quit();
         }
 
         /// The OS subsystem.
-        public SDL2OSSubsystem os;
+        public SDL2OSSubsystem!engineType os;
 
         /// The Display subsystem.
-        public SDL2DisplaySubsystem display;
+        public SDL2DisplaySubsystem!engineType display;
 
         /// The Events subsystem.
-        public SDL2EventsSubsystem events;
+        public SDL2EventsSubsystem!engineType events;
+
+        /// The Display type, as provided by the back end.
+        public alias Display = typeof(display).Display;
     }
 }

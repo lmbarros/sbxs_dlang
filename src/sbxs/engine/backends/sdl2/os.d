@@ -13,23 +13,30 @@ import derelict.sdl2.sdl;
 version(HasSDL2)
 {
     /**
-     * Operating System engine subsystem, based on the SDL 2 library.
+     * Operating System engine subsystem back end, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     E = The type of the engine using this subsystem back end.
      */
-    package struct SDL2OSSubsystem
+    package struct SDL2OSSubsystem(E)
     {
+        /// The Engine using this subsystem back end.
+        private E* _engine;
+
         /**
          * Initializes the subsystem.
          *
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void initialize(E)(E* engine)
+        public void initialize(E* engine)
         in
         {
             assert(engine !is null);
         }
         body
         {
+            _engine = engine;
             // Nothing here!
         }
 
@@ -39,34 +46,19 @@ version(HasSDL2)
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void shutdown(E)(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
+        public void shutdown()
         {
             // Nothing here!
         }
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
-        public double getTime(E)(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
+        public double getTime()
         {
             return SDL_GetTicks() / 1000.0;
         }
 
         /// Sleeps the current thread for a given number of seconds.
-        public void sleep(E)(E* engine, double timeInSecs)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
+        public void sleep(double timeInSecs)
         {
             SDL_Delay(cast(uint)(timeInSecs * 1000));
         }

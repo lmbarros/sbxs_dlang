@@ -54,7 +54,7 @@ package struct OSSubsystem(E)
      */
     public double getTime()
     {
-        return _engine.backend.os.getTime(_engine);
+        return _engine.backend.os.getTime();
     }
 
     /**
@@ -68,6 +68,6 @@ package struct OSSubsystem(E)
      */
     public void sleep(double timeInSecs)
     {
-        _engine.backend.os.sleep(_engine, timeInSecs);
+        _engine.backend.os.sleep(timeInSecs);
     }
 }

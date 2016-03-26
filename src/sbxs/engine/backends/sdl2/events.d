@@ -42,23 +42,31 @@ version(HasSDL2)
 
 
     /**
-     * Events subsystem, based on the SDL 2 library.
+     * Events engine subsystem back end, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     E = The type of the engine using this subsystem back end.
      */
-    package struct SDL2EventsSubsystem
+    package struct SDL2EventsSubsystem(E)
     {
+        /// The Engine using this subsystem back end.
+        private E* _engine;
+
         /**
          * Initializes the subsystem.
          *
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void initialize(E)(E* engine)
+        public void initialize(E* engine)
         in
         {
             assert(engine !is null);
         }
         body
         {
+            _engine = engine;
+
             // Initialize the SDL events subsystem
             // TODO: SDL_INIT_JOYSTICK? SDL_INIT_GAMECONTROLLER? (Update `shutdown()` accordingly!)
             if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0)
@@ -94,13 +102,8 @@ version(HasSDL2)
             }
         }
 
-        /**
-         * Shuts the subsystem down.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void shutdown(E)(E* engine)
+        /// Shuts the subsystem down.
+        public void shutdown()
         {
             // Free the `_tickEventData` memory
             import core.stdc.stdlib: free;
@@ -138,13 +141,11 @@ version(HasSDL2)
          * Enqueues a tick event.
          *
          * Parameters:
-         *     engine = The engine using this subsystem.
          *     deltaTimeInSecs = Time elapsed since last tick event, in seconds.
          *     tickTimeInSecs = Tick time elapsed since tghe program started to
          *         run, in seconds.
          */
-        public void enqueueTickEvent(E)(
-            E* engine, double deltaTimeInSecs, double tickTimeInSecs)
+        public void enqueueTickEvent(double deltaTimeInSecs, double tickTimeInSecs)
         {
             _tickEventData.deltaTimeInSecs = deltaTimeInSecs;
             _tickEventData.tickTimeInSecs = tickTimeInSecs;
@@ -160,7 +161,6 @@ version(HasSDL2)
          * Creates and returns a draw event.
          *
          * Parameters:
-         *     engine = The engine using this subsystem.
          *     deltaTimeInSecs = The time elapsed, since the last draw event,
          *         in seconds.
          *     drawingTimeInSecs = The current drawing time, measured in seconds
@@ -170,29 +170,27 @@ version(HasSDL2)
          *
          * Returns: A draw event.
          */
-        public Event makeDrawEvent(E)(
-            E* engine, double deltaTimeInSecs, double drawingTimeInSecs,
+        public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
             double timeSinceTickInSecs)
         {
             _drawEventData.deltaTimeInSecs = deltaTimeInSecs;
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData));
+            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _engine);
         }
 
         /**
          * Removes and returns an event from the event queue, if available.
          *
          * Parameters:
-         *     engine = The engine using this subsystem.
          *     event = In available, the event will be stored here. `null` is
          *         not acceptable.
          *
          * Returns:
          *    `true` if an event was available; `false` otherwise.
          */
-        public bool dequeueEvent(E)(E* engine, Event* event)
+        public bool dequeueEvent(Event* event)
         in
         {
             assert(event !is null);
@@ -202,7 +200,7 @@ version(HasSDL2)
             SDL_Event sdlEvent;
             const gotEvent = SDL_PollEvent(&sdlEvent) == 1;
             if (gotEvent)
-                *event = Event(sdlEvent);
+                *event = Event(sdlEvent, _engine);
             return gotEvent;
         }
 
@@ -214,17 +212,47 @@ version(HasSDL2)
          */
         public struct Event
         {
+            // Disable default constructor so that we can be surer that the
+            // `_engine` member will be properly initialized.
+            @disable this();
+
             /**
-             * Constructs the `Event` from an `SDL_Event`.
+             * Constructs the `Event` from an Engine.
+             *
+             * Parameters:
+             *     engine = The Engine where this event lives in.
+             *
+             */
+            public this(E* engine) @nogc nothrow
+            in
+            {
+                assert(engine !is null);
+            }
+            body
+            {
+                _engine = engine;
+            }
+
+            /**
+             * Constructs the `Event` from an `SDL_Event` and Engine.
              *
              * Parameters:
              *     event = The SDL event which will wrapped by this `Event`.
-             *
+             *     engine = The Engine where the events lives in.
              */
-            public this(SDL_Event event) @nogc nothrow
+            public this(SDL_Event event, E* engine) @nogc nothrow
+            in
             {
-                this._event = event;
+                assert(engine !is null);
             }
+            body
+            {
+                _event = event;
+                _engine = engine;
+            }
+
+            /// The Engine where this Event lives in.
+            private E* _engine;
 
             /// The wrapped `SDL_Event`.
             private SDL_Event _event;
@@ -339,35 +367,67 @@ version(HasSDL2)
                 return cast(KeyCode)(_event.key.keysym.sym);
             }
 
-            /**
-             * Returns the handle of the Display which had the focus when
-             * the event was generated.
-             *
-             * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
-             *     What is the SDL ID of an "invalid window"? Zero?
-             *
-             * TODO: Indicate how to obtain a `Display*` from this handle.
-             *
-             * Valid for: `keyUp`, `mouseMove`.
-             */
-            public @property auto display() const nothrow @nogc
-            in
+            static if (hasMember!(typeof(E.backend), "display"))
             {
-                assert(_event.common.type == SDL_MOUSEMOTION
-                    || _event.common.type == SDL_KEYUP);
-            }
-            body
-            {
-                switch(_event.common.type)
+                /**
+                 * Returns the Display which had the focus when the event was generated.
+                 *
+                 * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
+                 *     What is the SDL ID of an "invalid window"? Zero?
+                 *
+                 * Valid for: `keyUp`, `mouseMove`.
+                 */
+                public @property inout(typeof(*E.backend).Display*) display() inout nothrow @nogc
+                in
                 {
-                    case SDL_MOUSEMOTION:
-                        return _event.motion.windowID;
+                    assert(_event.common.type == SDL_MOUSEMOTION
+                        || _event.common.type == SDL_KEYUP);
+                }
+                body
+                {
+                    switch(_event.common.type)
+                    {
+                        case SDL_MOUSEMOTION:
+                            return _engine.display.displayFromHandle(_event.motion.windowID);
 
-                    case SDL_KEYUP:
-                        return _event.key.windowID;
+                        case SDL_KEYUP:
+                            return _engine.display.displayFromHandle(_event.key.windowID);
 
-                    default:
-                        assert(false, "Invalid event type");
+                        default:
+                            assert(false, "Invalid event type");
+                    }
+                }
+
+                /**
+                 * Returns the handle of the Display which had the focus when
+                 * the event was generated.
+                 *
+                 * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
+                 *     What is the SDL ID of an "invalid window"? Zero?
+                 *
+                 * TODO: Indicate how to obtain a `Display*` from this handle.
+                 *
+                 * Valid for: `keyUp`, `mouseMove`.
+                 */
+                public @property auto displayHandle() const nothrow @nogc
+                in
+                {
+                    assert(_event.common.type == SDL_MOUSEMOTION
+                        || _event.common.type == SDL_KEYUP);
+                }
+                body
+                {
+                    switch(_event.common.type)
+                    {
+                        case SDL_MOUSEMOTION:
+                            return _event.motion.windowID;
+
+                        case SDL_KEYUP:
+                            return _event.key.windowID;
+
+                        default:
+                            assert(false, "Invalid event type");
+                    }
                 }
             }
 

@@ -137,39 +137,37 @@ version(HasSDL2)
 
 
     /**
-     * Display engine subsystem, based on the SDL 2 library.
+     * Display engine subsystem back end, based on the SDL 2 library.
+     *
+     * Parameters:
+     *     E = The type of the engine using this subsystem back end.
      */
-    package struct SDL2DisplaySubsystem
+    package struct SDL2DisplaySubsystem(E)
     {
+        /// The Engine using this subsystem back end.
+        private E* _engine;
+
         /**
          * Initializes the subsystem.
          *
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void initialize(E)(E* engine)
+        public void initialize(E* engine)
         in
         {
             assert(engine !is null);
         }
         body
         {
+            _engine = engine;
+
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
                 throw new BackendInitializationException(sdlGetError());
         }
 
-        /**
-         * Shuts the subsystem down.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void shutdown(E)(E* engine) nothrow @nogc
-        in
-        {
-            assert(engine !is null);
-        }
-        body
+        /// Shuts the subsystem down.
+        public void shutdown() nothrow @nogc
         {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }
@@ -179,8 +177,11 @@ version(HasSDL2)
          *
          * Parameters:
          *     engine = The engine using this subsystem.
+
+         *     xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
          */
-        public void create(E,C)(E* engine, DisplayParams dp, ref C container)
+        public void create(C)(DisplayParams dp, ref C container)
         {
             container.insertBack(dp);
             auto display = &(container.back());
@@ -191,12 +192,12 @@ version(HasSDL2)
          * Converts an SDL window ID to a Display.
          *
          * Parameters:
-         *     engine = The engine using this subsystem.
+         *     handle = The Display handle handle (an SDL window ID).
          *
          * Returns: The Display whose handle is `handle`. May be `null`, if no
          *     such Display exists.
          */
-        public inout(Display*) displayFromHandle(E)(E* engine, Display.handle_t handle) inout
+        public inout(Display*) displayFromHandle(Display.handle_t handle) inout
         {
             auto pDisplay = handle in _handleToDisplay;
             if (pDisplay is null)

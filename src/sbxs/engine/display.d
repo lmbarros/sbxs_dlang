@@ -137,7 +137,7 @@ package struct DisplaySubsystem(E)
     /// Creates and returns a Display.
     public Display* create(DisplayParams dp)
     {
-        _engine.backend.display.create(_engine, dp, _displays);
+        _engine.backend.display.create(dp, _displays);
         return &_displays.back();
     }
 
@@ -150,7 +150,7 @@ package struct DisplaySubsystem(E)
      */
     public inout(Display*) displayFromHandle(Display.handle_t handle) inout
     {
-        return _engine.backend.display.displayFromHandle(_engine, handle);
+        return _engine.backend.display.displayFromHandle(handle);
     }
 
     /// Swap the buffers of all Displays.

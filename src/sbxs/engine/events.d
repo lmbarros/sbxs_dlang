@@ -197,12 +197,12 @@ package struct EventsSubsystem(E)
         _drawingTimeInSecs = _tickTimeInSecs;
 
         // Put a tick event on the event queue
-        _engine.backend.events.enqueueTickEvent(_engine, deltaTimeInSecs, _tickTimeInSecs);
+        _engine.backend.events.enqueueTickEvent(deltaTimeInSecs, _tickTimeInSecs);
 
         // Handle events
-        Event event;
+        auto event = Event(_engine);
 
-        while (_engine.backend.events.dequeueEvent(_engine, &event))
+        while (_engine.backend.events.dequeueEvent(&event))
         {
             // App state events are handled right here by the engine
             // itself, not by user-supplied handlers
@@ -245,7 +245,7 @@ package struct EventsSubsystem(E)
 
         // Call event handlers so that they can perform the drawing
         const drawEvent = _engine.backend.events.makeDrawEvent(
-            _engine, deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
+            deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
 
         callEventHandlers(drawEvent);
 
