@@ -98,44 +98,6 @@ public struct DisplayParams
 }
 
 
-/**
- * Checks if something is a Display.
- *
- * A Display is a place where things can be displayed. It can be either
- * a window or "a full screen". I try to not assume anything regarding
- * what rendering APIs are supported and used under the hood. However,
- * given my background knowledge and my interest in cross-platform
- * development, I will probably use OpenGL in all my concrete back end
- * implementations.
- */
-public enum isDisplay(T) =
-    // Must be implemented as a struct.
-    is (T == struct)
-
-    // Must provide a handle that uniquely identifies them. This shall
-    // be a lightweight cheaply copyable type.
-    && hasMember!(T, "handle")
-    && hasMember!(T, "handle_t")
-    && is (T.handle_t)
-    && is (typeof(T.handle) == T.handle_t)
-
-    // Must provide ways to access their width and height, in pixels.
-    && hasMember!(T, "width")
-    && is (typeof(T.width) : int)
-    && hasMember!(T, "height")
-    && is (typeof(T.height) : int)
-
-    // Displays must provide a `makeCurrent()` method, used to set them
-    // as the target for subsequent rendering.
-    && __traits(compiles, T.init.makeCurrent())
-
-    // Displays must provide a `swapBuffers()` method, used to, well,
-    // swap buffers. This implies that double buffering is expected, but
-    // an implemention could just implement this as a no-op (and just
-    // pretend to be double buffered).
-    && __traits(compiles, T.init.swapBuffers())
-;
-
 
 /**
  * Implementation of the Display engine subsystem.

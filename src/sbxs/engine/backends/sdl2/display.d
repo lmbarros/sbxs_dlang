@@ -135,8 +135,6 @@ version(HasSDL2)
         public alias handle_t = Uint32;
     }
 
-    static assert(isDisplay!SDL2Display);
-
 
     /**
      * Display engine subsystem, based on the SDL 2 library.
