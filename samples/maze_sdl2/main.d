@@ -25,7 +25,7 @@ void main()
     scope(exit)
         engine.shutdown();
 
-    writeln("Hello from the SDL2 Maze example!");
+    writeln("Hello from the SDL 2 Maze example!");
 
     engine.events.addHandler(
         delegate(Engine_t.Event* event)
