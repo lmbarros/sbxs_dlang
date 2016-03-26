@@ -14,22 +14,64 @@ void main()
 {
     import std.stdio;
     import sbxs.engine.engine;
+    import sbxs.engine.events;
     import sbxs.engine.display;
     import sbxs.engine.backends.allegro5;
 
-    Engine!Allegro5Backend engine;
+    alias Engine_t = Engine!Allegro5Backend;
+
+    Engine_t engine;
     engine.initialize();
     scope(exit)
         engine.shutdown();
 
-    writeln("Hello from the Allegro5 Maze example!");
+    writeln("Hello from the Allegro 5 Maze example!");
 
-    writefln("Now it is %s...", engine.core.getTime());
-    engine.core.sleep(0.2);
-    writefln("...and now it is %s.", engine.core.getTime());
+    engine.events.addHandler(
+        delegate(Engine_t.Event* event)
+        {
+            import core.stdc.stdlib: exit;
+            if (event.type == EventType.keyUp)
+            {
+                writefln("KEY UP! (%s - %s)", event.display, event.display.title);
+                if (event.keyCode == Engine_t.KeyCode.escape)
+                {
+                    writefln("PRESSED ESC!");
+                    exit(0);
+                }
+            }
+            else if (event.type == EventType.tick)
+            {
+                writefln("Tick: %s, %s!", event.deltaTimeInSecs, event.tickTimeInSecs);
+            }
+            else if (event.type == EventType.draw)
+            {
+                import derelict.opengl3.gl3;
+                import std.random;
+                glClearColor(uniform01(), uniform01(), uniform01(), 1.0);
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
+            else if (event.type == EventType.mouseMove)
+            {
+                writefln("Mouse: %s x %s, %s (%s)!", event.mouseX, event.mouseY, event.display, event.display.title);
+            }
+            return false;
+        },
+        0 // prio
+    );
 
     DisplayParams dp;
     dp.title = "Allegro 5 Maze";
-    auto d = engine.display.createDisplay(dp);
-    engine.core.sleep(3.0);
+    auto d = engine.display.create(dp);
+    writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
+
+    while(engine.os.getTime() < 5.0)
+    {
+        engine.events.tick(0.2);
+        engine.events.draw(0.2);
+        engine.os.sleep(0.2);
+        writefln("Now it is %s...", engine.os.getTime());
+    }
+
+    writefln("Leaving after 5 seconds.");
 }
