@@ -8,11 +8,13 @@
 
 module sbxs.engine.backends.sdl2.backend;
 
+import derelict.sdl2.sdl;
+
 version(HasSDL2)
 {
     import sbxs.engine.backend;
     import sbxs.engine.engine;
-    import sbxs.engine.backends.sdl2.core;
+    import sbxs.engine.backends.sdl2.os;
     import sbxs.engine.backends.sdl2.display;
     import sbxs.engine.backends.sdl2.events;
 
@@ -22,28 +24,40 @@ version(HasSDL2)
         /// Initializes the back end.
         public void initialize(Engine!SDL2Backend* engine)
         {
-            core.initialize(engine);
-            display.initialize(engine);
+            import derelict.opengl3.gl3;
+            import sbxs.engine.backends.sdl2.helpers;
+
+            // General back end initialization
+            DerelictSDL2.load();
+            DerelictGL3.load();
+            if (SDL_Init(0) < 0)
+                throw new BackendInitializationException(sdlGetError());
+
+            // Initialize each subsystem
+            os.initialize(engine);
             events.initialize(engine);
+            display.initialize(engine);
         }
 
         /// Shuts the back end down.
-        public void shutdown() nothrow @nogc
+        public void shutdown(Engine!SDL2Backend* engine)
         {
-            events.shutdown();
-            display.shutdown();
-            core.shutdown();
+            // Shutdown each subsystem
+            display.shutdown(engine);
+            events.shutdown(engine);
+            os.shutdown(engine);
+
+            // General back end shutdown
+            SDL_Quit();
         }
 
-        /// The core subsystem.
-        public SDL2CoreBE!(Engine!SDL2Backend) core;
+        /// The OS subsystem.
+        public SDL2OSSubsystem os;
 
         /// The Display subsystem.
-        public SDL2DisplayBE!(Engine!SDL2Backend) display;
+        public SDL2DisplaySubsystem display;
 
         /// The Events subsystem.
-        public SDL2EventsBE!(Engine!SDL2Backend) events;
+        public SDL2EventsSubsystem events;
     }
-
-    static assert(isBackend!SDL2Backend);
 }

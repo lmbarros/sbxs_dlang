@@ -42,12 +42,9 @@ version(HasSDL2)
 
 
     /**
-     * Back end Events subsystem, based on the SDL 2 library.
-     *
-     * Parameters:
-     *     E = The type of the engine using this subsystem implementation.
+     * Events subsystem, based on the SDL 2 library.
      */
-    public struct SDL2EventsBE(E)
+    package struct SDL2EventsSubsystem
     {
         /**
          * Initializes the subsystem.
@@ -55,15 +52,13 @@ version(HasSDL2)
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void initialize(E* engine)
+        public void initialize(E)(E* engine)
         in
         {
             assert(engine !is null);
         }
         body
         {
-            _engine = engine;
-
             // Initialize the SDL events subsystem
             // TODO: SDL_INIT_JOYSTICK? SDL_INIT_GAMECONTROLLER? (Update `shutdown()` accordingly!)
             if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0)
@@ -99,8 +94,13 @@ version(HasSDL2)
             }
         }
 
-        /// Shuts the subsystem down.
-        public void shutdown() nothrow @nogc
+        /**
+         * Shuts the subsystem down.
+         *
+         * Parameters:
+         *     engine = The engine using this subsystem.
+         */
+        public void shutdown(E)(E* engine)
         {
             // Free the `_tickEventData` memory
             import core.stdc.stdlib: free;
@@ -123,7 +123,7 @@ version(HasSDL2)
          *
          * Returns: The created event.
          */
-        private SDL_Event makeSDLEvent(Uint32 eventType, void* data) nothrow @nogc
+        private SDL_Event makeSDLEvent(Uint32 eventType, void* data)
         {
             import core.stdc.string: memset;
 
@@ -138,11 +138,13 @@ version(HasSDL2)
          * Enqueues a tick event.
          *
          * Parameters:
+         *     engine = The engine using this subsystem.
          *     deltaTimeInSecs = Time elapsed since last tick event, in seconds.
          *     tickTimeInSecs = Tick time elapsed since tghe program started to
          *         run, in seconds.
          */
-        public void enqueueTickEvent(double deltaTimeInSecs, double tickTimeInSecs) nothrow @nogc
+        public void enqueueTickEvent(E)(
+            E* engine, double deltaTimeInSecs, double tickTimeInSecs)
         {
             _tickEventData.deltaTimeInSecs = deltaTimeInSecs;
             _tickEventData.tickTimeInSecs = tickTimeInSecs;
@@ -150,7 +152,7 @@ version(HasSDL2)
             const rc = SDL_PushEvent(&tickEvent);
             if (rc != 1)
             {
-                // TODO: Do what on error? abort? log only?
+                // TODO: Do what on error? Abort? Log only? Logging seems good.
             }
         }
 
@@ -158,6 +160,7 @@ version(HasSDL2)
          * Creates and returns a draw event.
          *
          * Parameters:
+         *     engine = The engine using this subsystem.
          *     deltaTimeInSecs = The time elapsed, since the last draw event,
          *         in seconds.
          *     drawingTimeInSecs = The current drawing time, measured in seconds
@@ -167,27 +170,29 @@ version(HasSDL2)
          *
          * Returns: A draw event.
          */
-        public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
-                                   double timeSinceTickInSecs) nothrow @nogc
+        public Event makeDrawEvent(E)(
+            E* engine, double deltaTimeInSecs, double drawingTimeInSecs,
+            double timeSinceTickInSecs)
         {
             _drawEventData.deltaTimeInSecs = deltaTimeInSecs;
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _engine);
+            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData));
         }
 
         /**
          * Removes and returns an event from the event queue, if available.
          *
          * Parameters:
-         *    event = In available, the event will be stored here. `null` is
-         *    not acceptable.
+         *     engine = The engine using this subsystem.
+         *     event = In available, the event will be stored here. `null` is
+         *         not acceptable.
          *
          * Returns:
          *    `true` if an event was available; `false` otherwise.
          */
-        public bool dequeueEvent(Event* event)
+        public bool dequeueEvent(E)(E* engine, Event* event)
         in
         {
             assert(event !is null);
@@ -197,7 +202,7 @@ version(HasSDL2)
             SDL_Event sdlEvent;
             const gotEvent = SDL_PollEvent(&sdlEvent) == 1;
             if (gotEvent)
-                *event = Event(sdlEvent, _engine);
+                *event = Event(sdlEvent);
             return gotEvent;
         }
 
@@ -210,24 +215,19 @@ version(HasSDL2)
         public struct Event
         {
             /**
-             * Constructs the `Event` from an `SDL_Event` and an Engine.
+             * Constructs the `Event` from an `SDL_Event`.
              *
              * Parameters:
              *     event = The SDL event which will wrapped by this `Event`.
-             *     engine = The engine where this event ultimately lives in.
              *
              */
-            public this(SDL_Event event, E* engine) @nogc nothrow
+            public this(SDL_Event event) @nogc nothrow
             {
                 this._event = event;
-                this._engine = engine;
             }
 
             /// The wrapped `SDL_Event`.
             private SDL_Event _event;
-
-            /// The engine where this event ultimately lives in.
-            private E* _engine;
 
             /// Returns the event type.
             public @property EventType type() const nothrow @nogc
@@ -248,8 +248,12 @@ version(HasSDL2)
              * Valid for: `tick`.
              */
             public @property double tickTimeInSecs() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == sdlEventTypeTick);
+            }
+            body
+            {
                 const pTED = cast(TickEventData*)_event.user.data1;
                 return pTED.tickTimeInSecs;
             }
@@ -261,6 +265,12 @@ version(HasSDL2)
              * Valid for: `tick`, `draw`.
              */
             public @property double deltaTimeInSecs() const nothrow @nogc
+            in
+            {
+                assert(_event.common.type == sdlEventTypeTick
+                    || _event.common.type == sdlEventTypeDraw);
+            }
+            body
             {
                 switch(_event.common.type)
                 {
@@ -288,8 +298,12 @@ version(HasSDL2)
              * Valid for: `draw`.
              */
             public @property double drawingTimeInSecs() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == sdlEventTypeDraw);
+            }
+            body
+            {
                 const pDED = cast(DrawEventData*)_event.user.data1;
                 return pDED.drawingTimeInSecs;
             }
@@ -300,8 +314,12 @@ version(HasSDL2)
              * Valid for: `draw`.
              */
             public @property double timeSinceTickInSecs() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == sdlEventTypeDraw);
+            }
+            body
+            {
                 const pDED = cast(DrawEventData*)_event.user.data1;
                 return pDED.timeSinceTickInSecs;
             }
@@ -312,42 +330,44 @@ version(HasSDL2)
              * Valid for: `keyUp`.
              */
             public @property KeyCode keyCode() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == SDL_KEYUP);
+            }
+            body
+            {
                 return cast(KeyCode)(_event.key.keysym.sym);
             }
 
-            static if (implementsDisplayBE!(E.backendType))
+            /**
+             * Returns the handle of the Display which had the focus when
+             * the event was generated.
+             *
+             * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
+             *     What is the SDL ID of an "invalid window"? Zero?
+             *
+             * TODO: Indicate how to obtain a `Display*` from this handle.
+             *
+             * Valid for: `keyUp`, `mouseMove`.
+             */
+            public @property auto display() const nothrow @nogc
+            in
             {
-                /**
-                 * Returns the Display for in which the event was generated.
-                 *
-                 * TODO: Can the return be `null`? IIRC, under certain
-                 *     circumnstance, yes. This should be properly documented.
-                 *
-                 * Valid for: `keyUp`, `mouseMove`.
-                 */
-                public @property inout(E.Display*) display() inout nothrow @nogc
+                assert(_event.common.type == SDL_MOUSEMOTION
+                    || _event.common.type == SDL_KEYUP);
+            }
+            body
+            {
+                switch(_event.common.type)
                 {
-                    switch(_event.common.type)
-                    {
-                        case SDL_MOUSEMOTION:
-                        {
-                            return _engine.displayHandleToDisplay(
-                                _event.motion.windowID);
-                        }
+                    case SDL_MOUSEMOTION:
+                        return _event.motion.windowID;
 
-                        case SDL_KEYUP:
-                        {
-                            return _engine.displayHandleToDisplay(
-                                _event.key.windowID);
-                        }
+                    case SDL_KEYUP:
+                        return _event.key.windowID;
 
-                        default:
-                        {
-                            assert(false, "Invalid event type");
-                        }
-                    }
+                    default:
+                        assert(false, "Invalid event type");
                 }
             }
 
@@ -359,8 +379,12 @@ version(HasSDL2)
              * Valid for: `mouseMove`.
              */
             public @property int mouseX() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == SDL_MOUSEMOTION);
+            }
+            body
+            {
                 return _event.motion.x;
             }
 
@@ -372,8 +396,12 @@ version(HasSDL2)
              * Valid for: `mouseMove`.
              */
             public @property int mouseY() const nothrow @nogc
+            in
             {
                 assert(_event.common.type == SDL_MOUSEMOTION);
+            }
+            body
+            {
                 return _event.motion.y;
             }
 
@@ -482,13 +510,6 @@ version(HasSDL2)
             kpPeriod = SDLK_KP_PERIOD,  kpComma = SDLK_KP_COMMA,
             kpEnter = SDLK_KP_ENTER,
         }
-
-        /// The engine using this subsystem.
-        private E* _engine;
     }
-
-    import sbxs.engine.backends.sdl2.backend: SDL2Backend;
-    import sbxs.engine.engine: Engine;
-    static assert(isEventsBE!(SDL2EventsBE!(Engine!SDL2Backend)));
 
 } // version HasSDL2

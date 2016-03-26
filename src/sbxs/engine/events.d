@@ -8,6 +8,8 @@
 
 module sbxs.engine.events;
 
+import std.traits: hasMember;
+
 
 /**
  * The possible types of events.
@@ -84,17 +86,21 @@ public enum isEvent(T) =
 
 
 /**
- * Implementation of the Events engine subsystem. This is a `mixin template`
- * just to allow me to easily (should I say "lazily"?) split the engine
- * implementation in multiple files.
+ * Implementation of the Events engine subsystem.
+ *
+ * This provides services like detecting when input events happen and make them
+ * available in a queue-like interface.
+ *
+ * Parameters:
+ *     E = The type of the engine being used.
  */
-mixin template EventsSubsystem(BE)
+package struct EventsSubsystem(E)
 {
     /// An Event, as defined by the back end in use.
-    public alias Event = BE.events.Event;
+    public alias Event = E.backendType.events.Event;
 
     /// The key codes, as defined by the back end in use.
-    public alias KeyCode = BE.events.KeyCode;
+    public alias KeyCode = E.backendType.events.KeyCode;
 
     /**
      * A low-level event handler function.
@@ -109,9 +115,43 @@ mixin template EventsSubsystem(BE)
      *
      * TODO: Think about the semantics of the return value. Does the
      *     description above make sense? Is it useful?
-     *
      */
     public alias EventHandler = bool delegate(const Event* event);
+
+    /// The engine being used.
+    private E* _engine;
+
+    /**
+     * Initializes the subsystem.
+     *
+     * Parameters:
+     *     engine = The engine being used.
+     */
+    void initialize(E* engine)
+    in
+    {
+        assert(engine !is null);
+    }
+    body
+    {
+        _engine = engine;
+    }
+
+    /**
+     * Shuts the subsystem down.
+     *
+     * Parameters:
+     *     engine = The engine being used.
+     */
+    void shutdown(E* engine)
+    in
+    {
+        assert(engine !is null);
+    }
+    body
+    {
+        // Nothing here!
+    }
 
     /**
      * Register a given `EventHandler` with the Event subsystem, with a
@@ -186,6 +226,7 @@ mixin template EventsSubsystem(BE)
                 return true;
         }
 
+        // TODO: Implement app states!
         //// Let 'AppState'-specific event handlers handle the event
         //if (!eventAlreadyHandled && numAppStates > 0 && _appStates.back.handle(event))
         //    break;
@@ -197,8 +238,8 @@ mixin template EventsSubsystem(BE)
      * This must be called from the main game loop to indicate that a "tick"
      * has happened.
      *
-     * This will trigger a tick event and will cause all other input events
-     * to be processed.
+     * This will trigger a tick event and will cause all input events to be
+     * processed.
      *
      * Ticks are the game logic heartbeats. Tick handlers are the usual
      * places where the game state is updated.
@@ -214,19 +255,19 @@ mixin template EventsSubsystem(BE)
         _drawingTimeInSecs = _tickTimeInSecs;
 
         // Put a tick event on the event queue
-        _backend.events.enqueueTickEvent(deltaTimeInSecs, _tickTimeInSecs);
+        _engine._backend.events.enqueueTickEvent(_engine, deltaTimeInSecs, _tickTimeInSecs);
 
         // Handle events
         Event event;
 
-        while (_backend.events.dequeueEvent(&event))
+        while (_engine._backend.events.dequeueEvent(_engine, &event))
         {
             // App state events are handled right here by the engine
             // itself, not by user-supplied handlers
             if (event.type == EventType.appState)
             {
+                // TODO: Implement app states!
                 // App State events are handled here
-                // TODO: Implement me!
                 // handleAppStateEvent(event); // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
             }
             else
@@ -249,12 +290,11 @@ mixin template EventsSubsystem(BE)
      */
     public void draw(double deltaTimeInSecs)
     {
-        /* xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        // TODO: Implement app states!
         // Return immediately if we are out of 'AppState's. (This happens when
         // exiting the program.)
-        if (numAppStates == 0)
-            return;
-        */
+        //if (numAppStates == 0)
+        //    return;
 
         // Update the drawing time
         _drawingTimeInSecs += deltaTimeInSecs;
@@ -262,24 +302,25 @@ mixin template EventsSubsystem(BE)
         const timeSinceTickInSecs = _drawingTimeInSecs - _tickTimeInSecs;
 
         // Call event handlers so that they can perform the drawing
-        const drawEvent = _backend.events.makeDrawEvent(
-            deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
+        const drawEvent = _engine._backend.events.makeDrawEvent(
+            _engine, deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
 
         callEventHandlers(drawEvent);
 
-        // And flip the buffers (if our back end implements the display subsystem)
-        static if (implementsDisplayBE!BE)
+        // And flip the buffers (if our back end supports this)
+        static if (hasMember!(E, "display") && hasMember!(typeof(E.display), "swapAllBuffers"))
         {
-            swapAllBuffers();
+            _engine.display.swapAllBuffers();
         }
     }
 
     /**
      * The tick time, in seconds, since the program started running.
      *
-     * In normal circumnstances, this advances at the same rate as the clock
-     * time, and measures the passing of time from the engine point of view
-     * (which might or might not be the same as the time in the game world).
+     * In normal circumnstances, this advances at the same rate as the
+     * clock (wall) time, and measures the passing of time from the
+     * engine point of view (which might or might not be the same as the
+     * time in the game world).
      *
      * It gets updated whenever `tick()` is called.
      */

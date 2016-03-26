@@ -16,7 +16,7 @@ version(HasSDL2)
     import sbxs.engine.display;
     import sbxs.engine.backends.sdl2.helpers;
 
-    /// SDL 2 implementation of the Display interface.
+    /// SDL 2 implementation of a Display.
     public struct SDL2Display
     {
         @disable this(this);
@@ -132,7 +132,6 @@ version(HasSDL2)
         private SDL_GLContext _context = null;
 
         /// A type for a handle that uniquely identifies a Display.
-        // TODO: This would be useful to take the "id to Display" logic to the Engine
         public alias handle_t = Uint32;
     }
 
@@ -140,50 +139,63 @@ version(HasSDL2)
 
 
     /**
-     * Back end Display subsystem, based on the SDL 2 library.
-     *
-     * Parameters:
-     *     BE = The type of the back end.
+     * Display engine subsystem, based on the SDL 2 library.
      */
-    public struct SDL2DisplayBE(BE)
+    package struct SDL2DisplaySubsystem
     {
         /**
          * Initializes the subsystem.
          *
          * Parameters:
-         *     backend = The back end, passed here so that this submodule can
-         *         call its services.
+         *     engine = The engine using this subsystem.
          */
-        public void initialize(BE* backend)
+        public void initialize(E)(E* engine)
         in
         {
-            assert(backend !is null);
+            assert(engine !is null);
         }
         body
         {
-            _backend = backend;
-
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
                 throw new BackendInitializationException(sdlGetError());
         }
 
-        /// Shuts the subsystem down.
-        public void shutdown() nothrow @nogc
+        /**
+         * Shuts the subsystem down.
+         *
+         * Parameters:
+         *     engine = The engine using this subsystem.
+         */
+        public void shutdown(E)(E* engine) nothrow @nogc
+        in
+        {
+            assert(engine !is null);
+        }
+        body
         {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }
 
-        /// Creates a Display and `insertBack()`s it into `container`.
-        public void createDisplay(C)(DisplayParams dp, ref C container)
+        /**
+         * Creates a Display and `insertBack()`s it into `container`.
+         *
+         * Parameters:
+         *     engine = The engine using this subsystem.
+         */
+        public void createDisplay(E,C)(E* engine, DisplayParams dp, ref C container)
         {
             container.insertBack(dp);
             auto display = &(container.back());
             _handleToDisplay[container.back().handle] = display;
-            import std.stdio; writefln("Created Display with handle = %s", container.back().handle); // xxxxxxxxxxxxxxxxx
         }
 
-        /// Converts an SDL window ID to a Display.
-        public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
+        /**
+         * Converts an SDL window ID to a Display.
+         *
+         * Parameters:
+         *     engine = The engine using this subsystem.
+         */
+        public inout(Display*) displayHandleToDisplay(E)(E* engine, Display.handle_t handle) inout
         {
             auto pDisplay = handle in _handleToDisplay;
             if (pDisplay is null)
@@ -197,12 +209,6 @@ version(HasSDL2)
 
         /// The type used as Display.
         public alias Display = SDL2Display;
-
-        /// The back end.
-        private BE* _backend;
     }
-
-    import sbxs.engine.backends.sdl2.backend;
-    static assert(isDisplayBE!(SDL2DisplayBE!SDL2Backend));
 
 } // version HasSDL2

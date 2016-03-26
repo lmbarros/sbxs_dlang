@@ -11,14 +11,16 @@
 
 module sbxs.engine.engine;
 
+import std.traits: hasMember;
 import sbxs.engine.backend;
-import sbxs.engine.core;
+import sbxs.engine.os;
 import sbxs.engine.display;
 import sbxs.engine.events;
 
 
 /**
- * A game engine (if we can call it so).
+ * A game engine (if I can call it so; sometimes people are nitty with
+ * definitions like this).
  *
  * Unlike many implementations of game engines we have nowadays, this
  * is not a singleton. I don't know why one would want to have multiple
@@ -44,57 +46,66 @@ public struct Engine(BE)
     // `Engine`s cannot be copied.
     @disable this(this);
 
-    //
-    // General stuff
-    //
-
     /// The type used as back end.
     public alias backendType = BE;
 
+    /// The type of this engine.
+    private alias engineType = Engine!backendType;
+
     /// The back end.
-    private backendType _backend;
+    package backendType _backend;
 
     /**
-     * Initializes the engine. This must be called before using the `Engine`.
+     * Initializes the engine; this must be called before using it.
      *
      * See_also: `shutdown()`
      */
     public void initialize()
     {
         _backend.initialize(&this);
+        os.initialize(&this);
+        events.initialize(&this);
+        display.initialize(&this);
     }
 
     /**
-     * Shuts the engine down. This must be called before exiting your
-     * program. `scope (exit)` is your friend. After calling this, you
-     * should not use the engine anymore.
+     * Shuts the engine down.
+     *
+     * This must be called before exiting your program. `scope (exit)`
+     * is your friend. After calling this, you should not use the engine
+     * anymore.
      *
      * See_also: `initialize()`
      */
     public void shutdown()
     {
-        _displays.clear();
-        _backend.shutdown();
+        display.shutdown(&this);
+        events.shutdown(&this);
+        os.shutdown(&this);
+        _backend.shutdown(&this);
     }
 
+    /// The Operating System subsystem.
+    public OSSubsystem!engineType os;
 
-    //
-    // Core subsystem
-    //
-    mixin CoreSubsystem!backendType;
-
-    static if (implementsEventsBE!backendType)
+    static if (hasMember!(backendType, "events"))
     {
-        mixin EventsSubsystem!backendType;
+        /// The Events subsystem.
+        public EventsSubsystem!engineType events;
+
+        /// Handy alias to the Event type defined by the back end.
+        public alias Event = backendType.events.Event;
+
+        /// Handy alias to the KeyCode enumeration defined by the back end.
+        public alias KeyCode = backendType.events.KeyCode;
     }
 
-    // xxxxxxxxxxxxxxxxxxxxxxxxxxx
-    // TODO: These conditional compilations are giving me headache... I should rethink them!
-    //static if (implementsDisplayBE!backendType)
-    //{
-        /// Handy alias to the Display type defined by the back end.
-        private alias Display = backendType.display.Display;
+    static if (hasMember!(backendType, "display"))
+    {
+        /// The Display subsystem.
+        public DisplaySubsystem!engineType display;
 
-        mixin DisplaySubsystem!backendType;
-    //}
+        /// Handy alias to the Display type defined by the back end.
+        public alias Display = backendType.display.Display;
+    }
 }

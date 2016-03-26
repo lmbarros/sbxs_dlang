@@ -13,7 +13,7 @@
 module sbxs.engine.display;
 
 import std.traits;
-
+import sbxs.containers.nc_array;
 
 
 /**
@@ -138,16 +138,57 @@ public enum isDisplay(T) =
 
 
 /**
- * Implementation of the Display engine subsystem. This is a `mixin template`
- * just to allow me to easily (should I say "lazily"?) split the engine
- * implementation in multiple files.
+ * Implementation of the Display engine subsystem.
+ *
+ * This provides places where we can draw things to.
+ *
+ * Parameters:
+ *     E = The type of the engine being used.
  */
-mixin template DisplaySubsystem(BE)
+package struct DisplaySubsystem(E)
 {
+    /// The engine being used.
+    private E* _engine;
+
+    /// The type representing a Display, as defined in the back end.
+    public alias Display = E.backendType.display.Display;
+
+    /**
+     * Initializes the subsystem.
+     *
+     * Parameters:
+     *     engine = The engine being used.
+     */
+    void initialize(E* engine)
+    in
+    {
+        assert(engine !is null);
+    }
+    body
+    {
+        _engine = engine;
+    }
+
+    /**
+     * Shuts the subsystem down.
+     *
+     * Parameters:
+     *     engine = The engine being used.
+     */
+    void shutdown(E* engine)
+    in
+    {
+        assert(engine !is null);
+    }
+    body
+    {
+        // Nothing here!
+    }
+
     /// Creates and returns a Display.
     public Display* createDisplay(DisplayParams dp)
     {
-        _backend.display.createDisplay(dp, _displays);
+        _engine._backend.display.createDisplay(_engine, dp, _displays);
         return &_displays.back();
     }
 
@@ -160,11 +201,11 @@ mixin template DisplaySubsystem(BE)
      */
     public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
     {
-        return _backend.display.displayHandleToDisplay(handle);
+        return _engine._backend.display.displayHandleToDisplay(_engine, handle);
     }
 
     /// Swap the buffers of all Displays.
-    private void swapAllBuffers()
+    package void swapAllBuffers()
     {
         foreach (ref display; _displays)
             display.swapBuffers();

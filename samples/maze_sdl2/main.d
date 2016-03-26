@@ -27,8 +27,8 @@ void main()
 
     writeln("Hello from the SDL2 Maze example!");
 
-    engine.addEventHandler(
-        delegate(const Engine_t.Event* event)
+    engine.events.addEventHandler(
+        delegate(const Engine_t.events.Event* event)
         {
             import core.stdc.stdlib: exit;
             if (event.type == EventType.keyUp)
@@ -62,14 +62,14 @@ void main()
 
     DisplayParams dp;
     dp.title = "SDL 2 Maze";
-    auto d = engine.createDisplay(dp);
+    auto d = engine.display.createDisplay(dp);
 
-    while(engine.getTime() < 5.0)
+    while(engine.os.getTime() < 5.0)
     {
-        engine.tick(0.2);
-        engine.draw(0.2);
-        engine.sleep(0.2);
-        writefln("Now it is %s...", engine.getTime());
+        engine.events.tick(0.2);
+        engine.events.draw(0.2);
+        engine.os.sleep(0.2);
+        writefln("Now it is %s...", engine.os.getTime());
     }
 
     writefln("Leaving after 5 seconds.");
