@@ -137,21 +137,8 @@ package struct EventsSubsystem(E)
         _engine = engine;
     }
 
-    /**
-     * Shuts the subsystem down.
-     *
-     * Parameters:
-     *     engine = The engine being used.
-     */
-    void shutdown(E* engine)
-    in
-    {
-        assert(engine !is null);
-    }
-    body
-    {
-        // Nothing here!
-    }
+    /// Shuts the subsystem down.
+    void shutdown() { }
 
     /**
      * Register a given `EventHandler` with the Event subsystem, with a
@@ -255,12 +242,12 @@ package struct EventsSubsystem(E)
         _drawingTimeInSecs = _tickTimeInSecs;
 
         // Put a tick event on the event queue
-        _engine._backend.events.enqueueTickEvent(_engine, deltaTimeInSecs, _tickTimeInSecs);
+        _engine.backend.events.enqueueTickEvent(_engine, deltaTimeInSecs, _tickTimeInSecs);
 
         // Handle events
         Event event;
 
-        while (_engine._backend.events.dequeueEvent(_engine, &event))
+        while (_engine.backend.events.dequeueEvent(_engine, &event))
         {
             // App state events are handled right here by the engine
             // itself, not by user-supplied handlers
@@ -302,7 +289,7 @@ package struct EventsSubsystem(E)
         const timeSinceTickInSecs = _drawingTimeInSecs - _tickTimeInSecs;
 
         // Call event handlers so that they can perform the drawing
-        const drawEvent = _engine._backend.events.makeDrawEvent(
+        const drawEvent = _engine.backend.events.makeDrawEvent(
             _engine, deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
 
         callEventHandlers(drawEvent);

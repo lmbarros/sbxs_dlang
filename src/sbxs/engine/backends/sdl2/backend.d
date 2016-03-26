@@ -21,11 +21,26 @@ version(HasSDL2)
     /// Engine back end based on the SDL 2 library.
     public struct SDL2Backend
     {
-        /// Initializes the back end.
+        /// The engine using this back end.
+        private Engine!SDL2Backend* _engine;
+
+        /**
+         * Initializes the back end.
+         *
+         * Parameters:
+         *     engine = The engine using this back end.
+         */
         public void initialize(Engine!SDL2Backend* engine)
+        in
+        {
+            assert(engine !is null);
+        }
+        body
         {
             import derelict.opengl3.gl3;
             import sbxs.engine.backends.sdl2.helpers;
+
+            _engine = engine;
 
             // General back end initialization
             DerelictSDL2.load();
@@ -34,20 +49,20 @@ version(HasSDL2)
                 throw new BackendInitializationException(sdlGetError());
 
             // Initialize each subsystem
-            os.initialize(engine);
-            events.initialize(engine);
-            display.initialize(engine);
+            os.initialize(_engine);
+            events.initialize(_engine);
+            display.initialize(_engine);
         }
 
         /// Shuts the back end down.
-        public void shutdown(Engine!SDL2Backend* engine)
+        public void shutdown()
         {
             // Shutdown each subsystem
-            display.shutdown(engine);
-            events.shutdown(engine);
-            os.shutdown(engine);
+            display.shutdown(_engine);
+            events.shutdown(_engine);
+            os.shutdown(_engine);
 
-            // General back end shutdown
+            // Shutdown SDL itself
             SDL_Quit();
         }
 

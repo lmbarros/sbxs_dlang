@@ -53,7 +53,10 @@ public struct Engine(BE)
     private alias engineType = Engine!backendType;
 
     /// The back end.
-    package backendType _backend;
+    private backendType _backend;
+
+    /// Ditto
+    package @property inout(backendType*) backend() inout { return &_backend; }
 
     /**
      * Initializes the engine; this must be called before using it.
@@ -79,10 +82,10 @@ public struct Engine(BE)
      */
     public void shutdown()
     {
-        display.shutdown(&this);
-        events.shutdown(&this);
-        os.shutdown(&this);
-        _backend.shutdown(&this);
+        display.shutdown();
+        events.shutdown();
+        os.shutdown();
+        _backend.shutdown();
     }
 
     /// The Operating System subsystem.

@@ -169,26 +169,13 @@ package struct DisplaySubsystem(E)
         _engine = engine;
     }
 
-    /**
-     * Shuts the subsystem down.
-     *
-     * Parameters:
-     *     engine = The engine being used.
-     */
-    void shutdown(E* engine)
-    in
-    {
-        assert(engine !is null);
-    }
-    body
-    {
-        // Nothing here!
-    }
+    /// Shuts the subsystem down.
+    void shutdown() { }
 
     /// Creates and returns a Display.
     public Display* createDisplay(DisplayParams dp)
     {
-        _engine._backend.display.createDisplay(_engine, dp, _displays);
+        _engine.backend.display.createDisplay(_engine, dp, _displays);
         return &_displays.back();
     }
 
@@ -201,7 +188,7 @@ package struct DisplaySubsystem(E)
      */
     public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
     {
-        return _engine._backend.display.displayHandleToDisplay(_engine, handle);
+        return _engine.backend.display.displayHandleToDisplay(_engine, handle);
     }
 
     /// Swap the buffers of all Displays.

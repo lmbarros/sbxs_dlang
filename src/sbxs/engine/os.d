@@ -39,21 +39,8 @@ package struct OSSubsystem(E)
         _engine = engine;
     }
 
-    /**
-     * Shuts the subsystem down.
-     *
-     * Parameters:
-     *     engine = The engine being used.
-     */
-    void shutdown(E* engine)
-    in
-    {
-        assert(engine !is null);
-    }
-    body
-    {
-        // Nothing here!
-    }
+    /// Shuts the subsystem down.
+    void shutdown() { }
 
     /**
      * Returns the current time, as the number of seconds passed since the
@@ -67,7 +54,7 @@ package struct OSSubsystem(E)
      */
     public double getTime()
     {
-        return _engine._backend.os.getTime(_engine);
+        return _engine.backend.os.getTime(_engine);
     }
 
     /**
@@ -81,6 +68,6 @@ package struct OSSubsystem(E)
      */
     public void sleep(double timeInSecs)
     {
-        _engine._backend.os.sleep(_engine, timeInSecs);
+        _engine.backend.os.sleep(_engine, timeInSecs);
     }
 }
