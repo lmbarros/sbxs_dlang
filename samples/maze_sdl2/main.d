@@ -28,12 +28,12 @@ void main()
     writeln("Hello from the SDL2 Maze example!");
 
     engine.events.addHandler(
-        delegate(const Engine_t.Event* event)
+        delegate(Engine_t.Event* event)
         {
             import core.stdc.stdlib: exit;
             if (event.type == EventType.keyUp)
             {
-                writefln("KEY UP! (%s)", event.display);
+                writefln("KEY UP! (%s - %s)", event.display, event.display.title);
                 if (event.keyCode == Engine_t.KeyCode.escape)
                 {
                     writefln("PRESSED ESC!");
@@ -53,7 +53,7 @@ void main()
             }
             else if (event.type == EventType.mouseMove)
             {
-                writefln("Mouse: %s x %s, %s!", event.mouseX, event.mouseY, event.display);
+                writefln("Mouse: %s x %s, %s (%s)!", event.mouseX, event.mouseY, event.display, event.display.title);
             }
             return false;
         },
@@ -63,6 +63,7 @@ void main()
     DisplayParams dp;
     dp.title = "SDL 2 Maze";
     auto d = engine.display.create(dp);
+    writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
 
     while(engine.os.getTime() < 5.0)
     {

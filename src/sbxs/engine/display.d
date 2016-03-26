@@ -13,7 +13,6 @@
 module sbxs.engine.display;
 
 import std.traits;
-import sbxs.containers.nc_array;
 
 
 /**
@@ -121,7 +120,7 @@ package struct DisplaySubsystem(E)
      * Parameters:
      *     engine = The engine being used.
      */
-    void initialize(E* engine)
+    package void initialize(E* engine)
     in
     {
         assert(engine !is null);
@@ -132,13 +131,24 @@ package struct DisplaySubsystem(E)
     }
 
     /// Shuts the subsystem down.
-    void shutdown() { }
-
-    /// Creates and returns a Display.
-    public Display* create(DisplayParams dp)
+    package void shutdown()
     {
-        _engine.backend.display.create(dp, _displays);
-        return &_displays.back();
+        foreach (ref display; _displays)
+            display.destroy();
+    }
+
+    /**
+     * Creates a Display and returns it.
+     *
+     * Parameters:
+     *     params = The parameters describing the desired Display
+     *         characteristics.
+     */
+    public Display create(DisplayParams params)
+    {
+        auto newDisplay = _engine.backend.display.create(params);
+        _displays ~= newDisplay;
+        return newDisplay;
     }
 
     /**
@@ -148,7 +158,7 @@ package struct DisplaySubsystem(E)
      * not-so-obvious cases, like when a previously existing Display is
      * destroyed.)
      */
-    public inout(Display*) displayFromHandle(Display.handle_t handle) inout
+    public inout(Display*) displayFromHandle(Display.handleType handle) inout
     {
         return _engine.backend.display.displayFromHandle(handle);
     }
@@ -161,5 +171,5 @@ package struct DisplaySubsystem(E)
     }
 
     /// The Displays managed by this back end.
-    private NCArray!Display _displays;
+    private Display[] _displays;
 }

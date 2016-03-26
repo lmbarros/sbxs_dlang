@@ -68,10 +68,15 @@ package struct EventsSubsystem(E)
      * ended up not handling this event, so give other event handlers a
      * chance."
      *
+     * Note: The `event` passed is not `const` because many of its interesting
+     *     methods are not `const` (due to constrains imposed by the back end
+     *     APIs). Anyway, there shouldn't be anything harmful one could do by
+     *     calling mutable methods of an Event.
+     *
      * TODO: Think about the semantics of the return value. Does the
      *     description above make sense? Is it useful?
      */
-    public alias EventHandler = bool delegate(const Event* event);
+    public alias EventHandler = bool delegate(Event* event);
 
     /// The engine being used.
     private E* _engine;
@@ -157,14 +162,14 @@ package struct EventsSubsystem(E)
      * Parameters:
      *     event = The event to be handled.
      */
-    private bool callEventHandlers(const ref Event event)
+    private bool callEventHandlers(Event* event)
     {
         auto eventAlreadyHandled = false;
 
         // Give global event handlers a chance to handle the event
         foreach (handlerEntry; _handlers)
         {
-            if (handlerEntry.handler(&event))
+            if (handlerEntry.handler(event))
                 return true;
         }
 
@@ -214,7 +219,7 @@ package struct EventsSubsystem(E)
             }
             else
             {
-                callEventHandlers(event);
+                callEventHandlers(&event);
             }
         }
     }
@@ -244,10 +249,10 @@ package struct EventsSubsystem(E)
         const timeSinceTickInSecs = _drawingTimeInSecs - _tickTimeInSecs;
 
         // Call event handlers so that they can perform the drawing
-        const drawEvent = _engine.backend.events.makeDrawEvent(
+        auto drawEvent = _engine.backend.events.makeDrawEvent(
             deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
 
-        callEventHandlers(drawEvent);
+        callEventHandlers(&drawEvent);
 
         // And flip the buffers (if our back end supports this)
         static if (hasMember!(E, "display") && hasMember!(typeof(E.display), "swapAllBuffers"))

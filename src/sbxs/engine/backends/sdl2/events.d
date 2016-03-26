@@ -377,7 +377,7 @@ version(HasSDL2)
                  *
                  * Valid for: `keyUp`, `mouseMove`.
                  */
-                public @property inout(typeof(*E.backend).Display*) display() inout nothrow @nogc
+                public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
                 {
                     assert(_event.common.type == SDL_MOUSEMOTION

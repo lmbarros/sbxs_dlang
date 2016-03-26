@@ -16,11 +16,16 @@ version(HasSDL2)
     import sbxs.engine.display;
     import sbxs.engine.backends.sdl2.helpers;
 
-    /// SDL 2 implementation of a Display.
+    /**
+     * SDL 2 implementation of a Display.
+     *
+     * Note: Displays have reference semantics, despite being implemented as
+     *     `struct`s! You must create all your Displays through the Display
+     *     subsystem, which owns all Displays and is responsible for their
+     *     destruction.
+     */
     public struct SDL2Display
     {
-        @disable this(this);
-
         /**
          * Constructs the `SDL2Display`.
          *
@@ -85,7 +90,7 @@ version(HasSDL2)
         }
 
         /// Destroys the Display.
-        public ~this() nothrow @nogc
+        package(sbxs.engine) void destroy() nothrow @nogc
         {
             SDL_GL_DeleteContext(_context);
             SDL_DestroyWindow(_window);
@@ -107,6 +112,13 @@ version(HasSDL2)
             return h;
         }
 
+        /// The Display title.
+        public @property string title() nothrow
+        {
+            import std.conv: to;
+            return to!string(SDL_GetWindowTitle(_window));
+        }
+
         /// Make this Display the current target for rendering.
         public void makeCurrent() nothrow @nogc
         {
@@ -120,7 +132,7 @@ version(HasSDL2)
         }
 
         /// A handle that uniquely identifies this Display.
-        public @property handle_t handle() nothrow @nogc
+        public @property handleType handle() nothrow @nogc
         {
             return SDL_GetWindowID(_window);
         }
@@ -128,11 +140,22 @@ version(HasSDL2)
         /// The SDL window pointer.
         package SDL_Window* _window = null;
 
-        /// The SDL OpenGL context object.
+        /**
+         * The SDL OpenGL context object.
+         *
+         * Notice that `SDL_GLContext` is an `alias` to a pointer type (as
+         * ensured by the `static assert` below). This is relevant because
+         * otherwise guaranteeing the reference semantics of Display would be
+         * a bit harder.
+         */
         private SDL_GLContext _context = null;
 
+        // Be sure that `SDL_GLContext` is a pointer.
+        import std.traits: isPointer;
+        static assert(isPointer!SDL_GLContext);
+
         /// A type for a handle that uniquely identifies a Display.
-        public alias handle_t = Uint32;
+        public alias handleType = Uint32;
     }
 
 
@@ -173,19 +196,17 @@ version(HasSDL2)
         }
 
         /**
-         * Creates a Display and `insertBack()`s it into `container`.
+         * Creates and returns a Display.
          *
          * Parameters:
-         *     engine = The engine using this subsystem.
-
-         *     xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
+         *     params = The parameters describing the desired Display
+         *         characteristics.
          */
-        public void create(C)(DisplayParams dp, ref C container)
+        public Display create(DisplayParams params)
         {
-            container.insertBack(dp);
-            auto display = &(container.back());
-            _handleToDisplay[container.back().handle] = display;
+            auto newDisplay = Display(params);
+            _handleToDisplay[newDisplay.handle] = newDisplay;
+            return newDisplay;
         }
 
         /**
@@ -197,17 +218,17 @@ version(HasSDL2)
          * Returns: The Display whose handle is `handle`. May be `null`, if no
          *     such Display exists.
          */
-        public inout(Display*) displayFromHandle(Display.handle_t handle) inout
+        public inout(Display*) displayFromHandle(Display.handleType handle) inout
         {
             auto pDisplay = handle in _handleToDisplay;
             if (pDisplay is null)
                 return null;
             else
-                return *pDisplay;
+                return pDisplay;
         }
 
         /// Maps window IDs to Displays.
-        private Display*[Display.handle_t] _handleToDisplay;
+        private Display[Display.handleType] _handleToDisplay;
 
         /// The type used as Display.
         public alias Display = SDL2Display;
