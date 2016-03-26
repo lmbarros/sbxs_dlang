@@ -8,10 +8,10 @@
 
 module sbxs.engine.backends.sdl2.os;
 
-import derelict.sdl2.sdl;
-
 version(HasSDL2)
 {
+    import derelict.sdl2.sdl;
+
     /**
      * Operating System engine subsystem back end, based on the SDL 2 library.
      *
@@ -37,19 +37,10 @@ version(HasSDL2)
         body
         {
             _engine = engine;
-            // Nothing here!
         }
 
-        /**
-         * Shuts the subsystem down.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void shutdown()
-        {
-            // Nothing here!
-        }
+        /// Shuts the subsystem down.
+        public void shutdown() { }
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
         public double getTime()

@@ -6,8 +6,6 @@
  * Authors: Leandro Motta Barros.
  *
  * See_also: http://libsdl.org
- *
- * TODO: There is too much code replication among SDL and Allegro backends.
  */
 
 module sbxs.engine.backends.sdl2;

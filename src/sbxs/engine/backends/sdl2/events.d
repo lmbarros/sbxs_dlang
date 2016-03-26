@@ -551,7 +551,6 @@ version(HasSDL2)
             backquote = SDLK_BACKQUOTE,      minus = SDLK_MINUS,
             equals = SDLK_EQUALS,            backslash = SDLK_BACKSLASH,
             openBracket = SDLK_LEFTBRACKET,  closeBracket = SDLK_RIGHTBRACKET,
-            openParen = SDLK_LEFTPAREN,      closeParen = SDLK_RIGHTPAREN,
             semicolon = SDLK_SEMICOLON,      quote = SDLK_QUOTE,
             comma = SDLK_COMMA,              period = SDLK_PERIOD,
             slash = SDLK_SLASH,
@@ -567,8 +566,7 @@ version(HasSDL2)
 
             kpDivide = SDLK_KP_DIVIDE,  kpMultiply = SDLK_KP_MULTIPLY,
             kpMinus = SDLK_KP_MINUS,    kpPlus = SDLK_KP_PLUS,
-            kpPeriod = SDLK_KP_PERIOD,  kpComma = SDLK_KP_COMMA,
-            kpEnter = SDLK_KP_ENTER,
+            kpDecimal = SDLK_KP_PERIOD, kpEnter = SDLK_KP_ENTER,
         }
     }
 

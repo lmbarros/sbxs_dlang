@@ -30,36 +30,36 @@ version(HasSDL2)
          * Constructs the `SDL2Display`.
          *
          * Parameters:
-         *     dp = The parameters specifying how the Display shall be like.
+         *     params = The parameters specifying how the Display shall be like.
          */
-        public this(DisplayParams dp)
+        public this(DisplayParams params)
         {
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, dp.graphicsAPIMajorVersion);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, dp.graphicsAPIMinorVersion);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, params.graphicsAPIMajorVersion);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, params.graphicsAPIMinorVersion);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
             Uint32 flags = SDL_WINDOW_OPENGL;
 
             // TODO: implement real full screen
-            if (dp.windowingMode == WindowingMode.fullScreen
-                || dp.windowingMode == WindowingMode.fakeFullScreen)
+            if (params.windowingMode == WindowingMode.fullScreen
+                || params.windowingMode == WindowingMode.fakeFullScreen)
             {
                 flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
             }
 
-            if (!dp.decorations)
+            if (!params.decorations)
                 flags |= SDL_WINDOW_BORDERLESS;
 
-            if (dp.resizable)
+            if (params.resizable)
                 flags |= SDL_WINDOW_RESIZABLE;
 
             import std.string: toStringz;
             _window = SDL_CreateWindow(
-                dp.title.toStringz,
+                params.title.toStringz,
                 SDL_WINDOWPOS_CENTERED,
                 SDL_WINDOWPOS_CENTERED,
-                dp.width,
-                dp.height,
+                params.width,
+                params.height,
                 flags);
 
             if (_window is null)
@@ -69,8 +69,8 @@ version(HasSDL2)
                 SDL_DestroyWindow(_window);
 
             // Set window minimum and maximum dimensions
-            SDL_SetWindowMinimumSize(_window, dp.minWidth, dp.minHeight);
-            SDL_SetWindowMaximumSize(_window, dp.maxWidth, dp.maxHeight);
+            SDL_SetWindowMinimumSize(_window, params.minWidth, params.minHeight);
+            SDL_SetWindowMaximumSize(_window, params.maxWidth, params.maxHeight);
 
             // Create the OpenGL context
             _context = SDL_GL_CreateContext(_window);

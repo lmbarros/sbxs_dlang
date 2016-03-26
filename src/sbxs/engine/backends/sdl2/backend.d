@@ -8,10 +8,9 @@
 
 module sbxs.engine.backends.sdl2.backend;
 
-import derelict.sdl2.sdl;
-
 version(HasSDL2)
 {
+    import derelict.sdl2.sdl;
     import sbxs.engine.backend;
     import sbxs.engine.engine;
     import sbxs.engine.backends.sdl2.os;
