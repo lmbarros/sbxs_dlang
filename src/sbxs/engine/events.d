@@ -150,7 +150,7 @@ package struct EventsSubsystem(E)
      *         other words, handlers with a lower `prio` will be called
      *         before handlers with higher `prio` values.
      */
-    public void addEventHandler(EventHandler handler, int prio)
+    public void addHandler(EventHandler handler, int prio)
     in
     {
         assert(handler !is null);
@@ -158,8 +158,8 @@ package struct EventsSubsystem(E)
     body
     {
         import std.algorithm: sort;
-        _eventHandlers ~= EventHandlerEntry(handler, prio);
-        _eventHandlers.sort!"a.prio < b.prio"();
+        _handlers ~= EventHandlerEntry(handler, prio);
+        _handlers.sort!"a.prio < b.prio"();
     }
 
     /**
@@ -172,15 +172,15 @@ package struct EventsSubsystem(E)
      *     `true` if the event handler was removed; `false` otherwise
      *     (because it was not registered with the Events subsystem).
      */
-    public final bool removeEventHandler(EventHandler handler)
+    public final bool removeHandler(EventHandler handler)
     {
         import std.algorithm: remove;
 
-        const lenBefore = _eventHandlers.length;
+        const lenBefore = _handlers.length;
 
-        _eventHandlers = _eventHandlers.remove!(a => a.handler is handler)();
+        _handlers = _handlers.remove!(a => a.handler is handler)();
 
-        return _eventHandlers.length < lenBefore;
+        return _handlers.length < lenBefore;
     }
 
     /**
@@ -207,7 +207,7 @@ package struct EventsSubsystem(E)
         auto eventAlreadyHandled = false;
 
         // Give global event handlers a chance to handle the event
-        foreach (handlerEntry; _eventHandlers)
+        foreach (handlerEntry; _handlers)
         {
             if (handlerEntry.handler(&event))
                 return true;
@@ -327,5 +327,5 @@ package struct EventsSubsystem(E)
     private double _drawingTimeInSecs = 0.0;
 
     /// The registered event handlers.
-    private EventHandlerEntry[] _eventHandlers;
+    private EventHandlerEntry[] _handlers;
 }

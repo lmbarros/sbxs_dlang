@@ -173,9 +173,9 @@ package struct DisplaySubsystem(E)
     void shutdown() { }
 
     /// Creates and returns a Display.
-    public Display* createDisplay(DisplayParams dp)
+    public Display* create(DisplayParams dp)
     {
-        _engine.backend.display.createDisplay(_engine, dp, _displays);
+        _engine.backend.display.create(_engine, dp, _displays);
         return &_displays.back();
     }
 
@@ -186,9 +186,9 @@ package struct DisplaySubsystem(E)
      * not-so-obvious cases, like when a previously existing Display is
      * destroyed.)
      */
-    public inout(Display*) displayHandleToDisplay(Display.handle_t handle) inout
+    public inout(Display*) displayFromHandle(Display.handle_t handle) inout
     {
-        return _engine.backend.display.displayHandleToDisplay(_engine, handle);
+        return _engine.backend.display.displayFromHandle(_engine, handle);
     }
 
     /// Swap the buffers of all Displays.

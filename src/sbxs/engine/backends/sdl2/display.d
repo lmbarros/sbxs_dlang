@@ -182,7 +182,7 @@ version(HasSDL2)
          * Parameters:
          *     engine = The engine using this subsystem.
          */
-        public void createDisplay(E,C)(E* engine, DisplayParams dp, ref C container)
+        public void create(E,C)(E* engine, DisplayParams dp, ref C container)
         {
             container.insertBack(dp);
             auto display = &(container.back());
@@ -194,8 +194,11 @@ version(HasSDL2)
          *
          * Parameters:
          *     engine = The engine using this subsystem.
+         *
+         * Returns: The Display whose handle is `handle`. May be `null`, if no
+         *     such Display exists.
          */
-        public inout(Display*) displayHandleToDisplay(E)(E* engine, Display.handle_t handle) inout
+        public inout(Display*) displayFromHandle(E)(E* engine, Display.handle_t handle) inout
         {
             auto pDisplay = handle in _handleToDisplay;
             if (pDisplay is null)
