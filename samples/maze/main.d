@@ -1,31 +1,50 @@
 /**
- * Simple test for the Allegro 5 back end.
+ * Simple test, compileable with either the Allegro 5 or SDL 2 back ends.
  *
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.
  *
- * TODO: Make this have something to do with its "maze" name. Also, remove code
- *       duplication with the SDL 2 back end example.
+ * TODO: Make this have something to do with its "maze" name.
  */
+
+import sbxs.engine.engine;
+
+// All back end-dependant stuff goes here
+version(UseSDL2)
+{
+    import sbxs.engine.backends.sdl2;
+    alias Engine_t = Engine!SDL2Backend;
+    enum windowTitle = "SDL 2 Maze";
+    enum helloMessage = "Hello from the SDL-backed Maze example!";
+}
+else version(UseAllegro5)
+{
+    import sbxs.engine.backends.allegro5;
+    alias Engine_t = Engine!Allegro5Backend;
+    enum windowTitle = "Allegro 5 Maze";
+    enum helloMessage = "Hello from the Allegro-backed Maze example!";
+}
+else
+{
+    static assert(false, "Please define either `UseSDL2` or `UseAllegro5` version");
+}
+
 
 /// The entry point, you know.
 void main()
 {
     import std.stdio;
-    import sbxs.engine.engine;
+    // TODO: Hmm, `import sbxs.engine` anyone?
     import sbxs.engine.events;
     import sbxs.engine.display;
-    import sbxs.engine.backends.allegro5;
-
-    alias Engine_t = Engine!Allegro5Backend;
 
     Engine_t engine;
     engine.initialize();
     scope(exit)
         engine.shutdown();
 
-    writeln("Hello from the Allegro 5 Maze example!");
+    writeln(helloMessage);
 
     engine.events.addHandler(
         delegate(Engine_t.Event* event)
@@ -61,7 +80,7 @@ void main()
     );
 
     DisplayParams dp;
-    dp.title = "Allegro 5 Maze";
+    dp.title = windowTitle;
     auto d = engine.display.create(dp);
     writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
 

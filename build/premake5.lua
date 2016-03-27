@@ -110,15 +110,17 @@ project "UnitTests"
 --
 project "SampleMazeSDL2"
     kind "WindowedApp"
-    files "../samples/maze_sdl2/**.d"
+    files "../samples/maze/**.d"
     files (filesSDL2)
+    versionconstants "UseSDL2"
     links "sbxs"
 
 --
--- Project SampleMazeAllegro5: simple maze game, for testing the SDL 2 back end
+-- Project SampleMazeAllegro5: simple maze game, for testing the Allegro 5 back end
 --
 project "SampleMazeAllegro5"
     kind "WindowedApp"
-    files "../samples/maze_allegro5/**.d"
+    files "../samples/maze/**.d"
     files (filesAllegro5)
+    versionconstants "UseAllegro5"
     links "sbxs"
