@@ -298,8 +298,12 @@ version(HasSDL2)
                     {
                         switch (_event.window.event)
                         {
-                            case SDL_WINDOWEVENT_EXPOSED: return EventType.displayExpose;
-                            default: return EventType.unknown;
+                            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                                return EventType.displayResize;
+                            case SDL_WINDOWEVENT_EXPOSED:
+                                return EventType.displayExpose;
+                            default:
+                                return EventType.unknown;
                         }
                     }
                     default: return EventType.unknown;
@@ -413,7 +417,7 @@ version(HasSDL2)
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
-                 * `mouseWheelUp`, `mouseWheelDown`, `windowExpose`.
+                 * `mouseWheelUp`, `mouseWheelDown`, `windowResize`, `windowExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
@@ -424,6 +428,7 @@ version(HasSDL2)
                         || _event.common.type == SDL_MOUSEBUTTONDOWN
                         || _event.common.type == SDL_MOUSEBUTTONUP
                         || (_event.common.type == SDL_MOUSEWHEEL && _event.wheel.y != 0)
+                        || _event.isWinEvent(SDL_WINDOWEVENT_SIZE_CHANGED)
                         || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
@@ -448,6 +453,7 @@ version(HasSDL2)
                         {
                             switch (_event.window.type)
                             {
+                                case SDL_WINDOWEVENT_SIZE_CHANGED:
                                 case SDL_WINDOWEVENT_EXPOSED:
                                 {
                                     return _engine.display.displayFromHandle(
@@ -472,7 +478,7 @@ version(HasSDL2)
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
-                 * `mouseWheelUp`, `mouseWheelDown`, `windowExpose`.
+                 * `mouseWheelUp`, `mouseWheelDown`, `windowResize`, `windowExpose`.
                  */
                 public @property E.backendType.Display.handleType
                     displayHandle() const nothrow @nogc
@@ -484,6 +490,7 @@ version(HasSDL2)
                         || _event.common.type == SDL_MOUSEBUTTONDOWN
                         || _event.common.type == SDL_MOUSEBUTTONUP
                         || (_event.common.type == SDL_MOUSEWHEEL && _event.wheel.y != 0)
+                        || _event.isWinEvent(SDL_WINDOWEVENT_SIZE_CHANGED)
                         || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
@@ -508,6 +515,7 @@ version(HasSDL2)
                         {
                             switch (_event.window.type)
                             {
+                                case SDL_WINDOWEVENT_SIZE_CHANGED:
                                 case SDL_WINDOWEVENT_EXPOSED:
                                     return _event.key.windowID;
 

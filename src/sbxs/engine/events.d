@@ -44,6 +44,9 @@ public enum EventType
     /// The mouse wheel was rolled down.
     mouseWheelDown,
 
+    /// A Display was resized.
+    displayResize,
+
     /// A Display (or part of it) was exposed and should be redrawn.
     displayExpose,
 

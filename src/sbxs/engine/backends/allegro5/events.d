@@ -332,6 +332,7 @@ version(HasAllegro5)
                     }
                     case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN: return EventType.mouseDown;
                     case ALLEGRO_EVENT_MOUSE_BUTTON_UP: return EventType.mouseUp;
+                    case ALLEGRO_EVENT_DISPLAY_RESIZE: return EventType.displayResize;
                     case ALLEGRO_EVENT_DISPLAY_EXPOSE: return EventType.displayExpose;
                     default: return EventType.unknown;
                 }
@@ -445,7 +446,8 @@ version(HasAllegro5)
                  *     "invalidHandle" constant?
                  *
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`,
-                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayExpose`.
+                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayResize`,
+                 * `displayExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
@@ -455,6 +457,7 @@ version(HasAllegro5)
                         || _event.type == ALLEGRO_EVENT_MOUSE_AXES
                         || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
                         || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP
+                        || _event.type == ALLEGRO_EVENT_DISPLAY_RESIZE
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -476,6 +479,7 @@ version(HasAllegro5)
                                 cast(size_t)_event.keyboard.display);
                         }
 
+                        case ALLEGRO_EVENT_DISPLAY_RESIZE:
                         case ALLEGRO_EVENT_DISPLAY_EXPOSE:
                         {
                             return _engine.display.displayFromHandle(
@@ -497,7 +501,8 @@ version(HasAllegro5)
                  *     "invalidHandle" constant?
                  *
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`,
-                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayExpose`.
+                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayResize`,
+                 * `displayExpose`.
                  */
                 public @property E.backendType.Display.handleType
                     displayHandle() const nothrow @nogc
@@ -508,6 +513,7 @@ version(HasAllegro5)
                         || _event.type == ALLEGRO_EVENT_MOUSE_AXES
                         || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
                         || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP
+                        || _event.type == ALLEGRO_EVENT_DISPLAY_RESIZE
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -525,6 +531,7 @@ version(HasAllegro5)
                         case ALLEGRO_EVENT_KEY_DOWN:
                             return cast(handleType)_event.keyboard.display;
 
+                        case ALLEGRO_EVENT_DISPLAY_RESIZE:
                         case ALLEGRO_EVENT_DISPLAY_EXPOSE:
                             return cast(handleType)_event.display.source;
 
