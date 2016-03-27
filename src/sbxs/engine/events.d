@@ -11,12 +11,7 @@ module sbxs.engine.events;
 import std.traits: hasMember;
 
 
-/**
- * The possible types of events.
- *
- * TODO: This list is obviously incomplete. I am focusing at the infrastructure
- *     right now.
- */
+/// The possible types of events.
 public enum EventType
 {
     /// The clock ticked. Kinda like the heartbeat of the engine.
@@ -33,6 +28,9 @@ public enum EventType
 
     /// The mouse pointer has moved.
     mouseMove,
+
+    /// A Display (or part of it) was exposed and should be redrawn.
+    displayExpose,
 
     /// An app state event; used internally by the engine, don't mess with it.
     appState,

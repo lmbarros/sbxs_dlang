@@ -321,6 +321,7 @@ version(HasAllegro5)
                     case userEventTypeTick: return EventType.tick;
                     case ALLEGRO_EVENT_KEY_UP: return EventType.keyUp;
                     case ALLEGRO_EVENT_MOUSE_AXES: return EventType.mouseMove;
+                    case ALLEGRO_EVENT_DISPLAY_EXPOSE: return EventType.displayExpose;
                     default: return EventType.unknown;
                 }
             }
@@ -430,17 +431,18 @@ version(HasAllegro5)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyUp`, `mouseMove`.
+                 * Valid for: `keyUp`, `mouseMove`, `displayExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
                 {
                     assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
-                        || _event.type == ALLEGRO_EVENT_KEY_UP);
+                        || _event.type == ALLEGRO_EVENT_KEY_UP
+                        || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
                 {
-                    switch(_event.type)
+                    switch (_event.type)
                     {
                         case ALLEGRO_EVENT_MOUSE_AXES:
                         {
@@ -454,6 +456,12 @@ version(HasAllegro5)
                                 cast(size_t)_event.keyboard.display);
                         }
 
+                        case ALLEGRO_EVENT_DISPLAY_EXPOSE:
+                        {
+                            return _engine.display.displayFromHandle(
+                                cast(size_t)_event.display.source);
+                        }
+
                         default:
                         {
                             assert(false, "Invalid event type");
@@ -465,28 +473,33 @@ version(HasAllegro5)
                  * Returns the handle of the Display which had the focus when
                  * the event was generated.
                  *
-                 * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
-                 *     What is the SDL ID of an "invalid window"? Zero?
+                 * TODO: Er, and what about "null"? Do I need a special
+                 *     "invalidHandle" constant?
                  *
-                 * TODO: Indicate how to obtain a `Display*` from this handle.
-                 *
-                 * Valid for: `keyUp`, `mouseMove`.
+                 * Valid for: `keyUp`, `mouseMove`, `displayExpose`.
                  */
-                public @property auto displayHandle() const nothrow @nogc
+                public @property E.backendType.Display.handleType
+                    displayHandle() const nothrow @nogc
                 in
                 {
                     assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
-                        || _event.type == ALLEGRO_EVENT_KEY_UP);
+                        || _event.type == ALLEGRO_EVENT_KEY_UP
+                        || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
                 {
-                    switch(_event.type)
+                    alias handleType = E.backendType.Display.handleType;
+
+                    switch (_event.type)
                     {
                         case ALLEGRO_EVENT_MOUSE_AXES:
-                            return _event.mouse.display;
+                            return cast(handleType)_event.mouse.display;
 
                         case ALLEGRO_EVENT_KEY_UP:
-                            return _event.keyboard.display;
+                            return cast(handleType)_event.keyboard.display;
+
+                        case ALLEGRO_EVENT_DISPLAY_EXPOSE:
+                            return cast(handleType)_event.display.source;
 
                         default:
                             assert(false, "Invalid event type");

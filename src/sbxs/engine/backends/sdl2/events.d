@@ -15,6 +15,12 @@ version(HasSDL2)
     import sbxs.engine.events;
     import sbxs.engine.backends.sdl2.helpers;
 
+    /// Checks if the event passed is an SDL window event of the given type.
+    private bool isWinEvent(const ref SDL_Event event, uint type) nothrow @nogc pure
+    {
+        return event.common.type == SDL_WINDOWEVENT && event.window.event == type;
+    }
+
 
     /// Data associated with tick events.
     private struct TickEventData
@@ -260,12 +266,21 @@ version(HasSDL2)
             /// Returns the event type.
             public @property EventType type() const nothrow @nogc
             {
+                // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                 switch (_event.type)
                 {
                     case sdlEventTypeDraw: return EventType.draw;
                     case sdlEventTypeTick: return EventType.tick;
                     case SDL_KEYUP: return EventType.keyUp;
                     case SDL_MOUSEMOTION: return EventType.mouseMove;
+                    case SDL_WINDOWEVENT:
+                    {
+                        switch (_event.window.event)
+                        {
+                            case SDL_WINDOWEVENT_EXPOSED: return EventType.displayExpose;
+                            default: return EventType.unknown;
+                        }
+                    }
                     default: return EventType.unknown;
                 }
             }
@@ -375,23 +390,39 @@ version(HasSDL2)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyUp`, `mouseMove`.
+                 * Valid for: `keyUp`, `mouseMove`, `windowExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
                 {
                     assert(_event.common.type == SDL_MOUSEMOTION
-                        || _event.common.type == SDL_KEYUP);
+                        || _event.common.type == SDL_KEYUP
+                        || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
                 {
-                    switch(_event.common.type)
+                    switch (_event.common.type)
                     {
                         case SDL_MOUSEMOTION:
                             return _engine.display.displayFromHandle(_event.motion.windowID);
 
                         case SDL_KEYUP:
                             return _engine.display.displayFromHandle(_event.key.windowID);
+
+                        case SDL_WINDOWEVENT:
+                        {
+                            switch (_event.window.type)
+                            {
+                                case SDL_WINDOWEVENT_EXPOSED:
+                                {
+                                    return _engine.display.displayFromHandle(
+                                        _event.window.windowID);
+                                }
+
+                                default:
+                                    assert(false, "Invalid event type");
+                            }
+                        }
 
                         default:
                             assert(false, "Invalid event type");
@@ -405,15 +436,15 @@ version(HasSDL2)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * TODO: Indicate how to obtain a `Display*` from this handle.
-                 *
-                 * Valid for: `keyUp`, `mouseMove`.
+                 * Valid for: `keyUp`, `mouseMove`, `windowExpose`.
                  */
-                public @property auto displayHandle() const nothrow @nogc
+                public @property E.backendType.Display.handleType
+                    displayHandle() const nothrow @nogc
                 in
                 {
                     assert(_event.common.type == SDL_MOUSEMOTION
-                        || _event.common.type == SDL_KEYUP);
+                        || _event.common.type == SDL_KEYUP
+                        || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
                 {
@@ -424,6 +455,18 @@ version(HasSDL2)
 
                         case SDL_KEYUP:
                             return _event.key.windowID;
+
+                        case SDL_WINDOWEVENT:
+                        {
+                            switch (_event.window.type)
+                            {
+                                case SDL_WINDOWEVENT_EXPOSED:
+                                    return _event.key.windowID;
+
+                                default:
+                                    assert(false, "Invalid event type");
+                            }
+                        }
 
                         default:
                             assert(false, "Invalid event type");

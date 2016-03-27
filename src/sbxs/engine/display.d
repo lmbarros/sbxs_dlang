@@ -82,6 +82,17 @@ public struct DisplayParams
     bool resizable = true;
 
     /**
+     * Are `displayExpose` events wanted?
+     *
+     * Certain back ends (Allegro 5, for example) will not generate
+     * `displayExpose` events unless this is set to `true`. However, leaving
+     * this as `false` does not guaranteed that these events will not be
+     * generated. The bottom line is: if you need `displayExpose` events, set
+     * this to `true`; otherwise, just ignore these events.
+     */
+    bool wantsExposeEvents = false;
+
+    /**
      * The desired version for the underlying graphics API. I created this so
      * that I could specify a certain OpenGL version when creating my Displays.
      * I assume that other graphics APIs (like Direct3D) can use these same

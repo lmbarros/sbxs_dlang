@@ -33,8 +33,32 @@ version(HasAllegro5)
          */
         package(sbxs.engine) this(DisplayParams params)
         {
-            // TODO: Ensure that OpenGL is used.
-            // TODO: Take `params` into account for real.
+            // Set the flags for newly created windows according to what the
+            // caller asked for
+            int flags = ALLEGRO_OPENGL_3_0 | ALLEGRO_OPENGL;
+
+            // TODO: Add `ALLEGRO_PROGRAMMABLE_PIPELINE` when it become
+            //     available (since Allegro 5.0.16).
+
+            switch (params.windowingMode)
+            {
+                case WindowingMode.fullScreen: flags |= ALLEGRO_FULLSCREEN; break;
+                case WindowingMode.fakeFullScreen: flags |= ALLEGRO_FULLSCREEN_WINDOW; break;
+                default: flags |= ALLEGRO_WINDOWED; break;
+            }
+
+            if (!params.decorations)
+                flags |= ALLEGRO_FRAMELESS;
+
+            if (params.resizable)
+                flags |= ALLEGRO_RESIZABLE;
+
+            if (params.wantsExposeEvents)
+                flags |= ALLEGRO_GENERATE_EXPOSE_EVENTS;
+
+            al_set_new_display_flags(flags);
+
+            // Create the display
             _display = al_create_display(params.width, params.height);
             if (_display is null)
                 throw new DisplayCreationException();
