@@ -261,7 +261,7 @@ version(HasAllegro5)
         /**
          * An event.
          *
-         * Wraps an `SDL_Event`, providing the interface expected by the
+         * Wraps an `ALLEGRO_EVENT`, providing the interface expected by the
          * engine.
          */
         public struct Event
@@ -321,7 +321,17 @@ version(HasAllegro5)
                     case userEventTypeTick: return EventType.tick;
                     case ALLEGRO_EVENT_KEY_UP: return EventType.keyUp;
                     case ALLEGRO_EVENT_KEY_DOWN: return EventType.keyDown;
-                    case ALLEGRO_EVENT_MOUSE_AXES: return EventType.mouseMove;
+                    case ALLEGRO_EVENT_MOUSE_AXES:
+                    {
+                        if (_event.mouse.dz > 0)
+                            return EventType.mouseWheelUp;
+                        else if (_event.mouse.dz < 0)
+                            return EventType.mouseWheelDown;
+                        else
+                            return EventType.mouseMove;
+                    }
+                    case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN: return EventType.mouseDown;
+                    case ALLEGRO_EVENT_MOUSE_BUTTON_UP: return EventType.mouseUp;
                     case ALLEGRO_EVENT_DISPLAY_EXPOSE: return EventType.displayExpose;
                     default: return EventType.unknown;
                 }
@@ -428,12 +438,14 @@ version(HasAllegro5)
             static if (hasMember!(typeof(E.backend), "display"))
             {
                 /**
-                 * Returns the Display which had the focus when the event was generated.
+                 * Returns the Display which had the focus when the event was
+                 * generated.
                  *
-                 * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
-                 *     What is the SDL ID of an "invalid window"? Zero?
+                 * TODO: Er, and what about "null"? Do I need a special
+                 *     "invalidHandle" constant?
                  *
-                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `displayExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`,
+                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
@@ -441,6 +453,8 @@ version(HasAllegro5)
                     assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
                         || _event.type == ALLEGRO_EVENT_KEY_UP
                         || _event.type == ALLEGRO_EVENT_MOUSE_AXES
+                        || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
+                        || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -448,6 +462,8 @@ version(HasAllegro5)
                     switch (_event.type)
                     {
                         case ALLEGRO_EVENT_MOUSE_AXES:
+                        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                        case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
                         {
                             return _engine.display.displayFromHandle(
                                 cast(size_t)_event.mouse.display);
@@ -480,7 +496,8 @@ version(HasAllegro5)
                  * TODO: Er, and what about "null"? Do I need a special
                  *     "invalidHandle" constant?
                  *
-                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `displayExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`,
+                 * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayExpose`.
                  */
                 public @property E.backendType.Display.handleType
                     displayHandle() const nothrow @nogc
@@ -489,6 +506,8 @@ version(HasAllegro5)
                     assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
                         || _event.type == ALLEGRO_EVENT_KEY_UP
                         || _event.type == ALLEGRO_EVENT_MOUSE_AXES
+                        || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
+                        || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -498,6 +517,8 @@ version(HasAllegro5)
                     switch (_event.type)
                     {
                         case ALLEGRO_EVENT_MOUSE_AXES:
+                        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                        case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
                             return cast(handleType)_event.mouse.display;
 
                         case ALLEGRO_EVENT_KEY_UP:
@@ -518,12 +539,14 @@ version(HasAllegro5)
              *
              * Zero is the left side of the Display.
              *
-             * Valid for: `mouseMove`.
+             * Valid for: `mouseMove`, `mouseDown`, `mouseUp`.
              */
             public @property int mouseX() const nothrow @nogc
             in
             {
-                assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES);
+                assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
+                    || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
+                    || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP);
             }
             body
             {
@@ -535,19 +558,43 @@ version(HasAllegro5)
              *
              * Zero is the top side of the Display.
              *
-             * Valid for: `mouseMove`.
+             * Valid for: `mouseMove`, `mouseDown`, `mouseUp`.
              */
             public @property int mouseY() const nothrow @nogc
             in
             {
-                assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES);
+                assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
+                    || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
+                    || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP);
             }
             body
             {
                 return _event.mouse.y;
             }
 
-            // TODO: Add more mouse stuff.
+            /**
+             * Returns the mouse button that generated the event.
+             *
+             * Valid for: `mouseDown`, `mouseUp`.
+             */
+            public @property MouseButton mouseButton() const nothrow @nogc
+            in
+            {
+                assert(_event.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN
+                    || _event.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP);
+            }
+            body
+            {
+                switch(_event.mouse.button)
+                {
+                    case 1: return MouseButton.left;
+                    case 2: return MouseButton.middle;
+                    case 3: return MouseButton.right;
+                    case 4: return MouseButton.extra1;
+                    case 5: return MouseButton.extra2;
+                    default: return MouseButton.other;
+                }
+            }
         }
 
         /**

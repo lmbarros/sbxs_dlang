@@ -273,6 +273,27 @@ version(HasSDL2)
                     case SDL_KEYDOWN: return EventType.keyDown;
                     case SDL_KEYUP: return EventType.keyUp;
                     case SDL_MOUSEMOTION: return EventType.mouseMove;
+                    case SDL_MOUSEBUTTONDOWN: return EventType.mouseDown;
+                    case SDL_MOUSEBUTTONUP: return EventType.mouseUp;
+                    case SDL_MOUSEWHEEL:
+                    {
+                        if (_event.wheel.y > 0)
+                        {
+                            return _event.wheel.direction == SDL_MOUSEWHEEL_NORMAL
+                                ? EventType.mouseWheelUp
+                                : EventType.mouseWheelDown;
+                        }
+                        else if (_event.wheel.y < 0)
+                        {
+                            return _event.wheel.direction == SDL_MOUSEWHEEL_NORMAL
+                                ? EventType.mouseWheelDown
+                                : EventType.mouseWheelUp;
+                        }
+                        else
+                        {
+                            return EventType.unknown;
+                        }
+                    }
                     case SDL_WINDOWEVENT:
                     {
                         switch (_event.window.event)
@@ -391,7 +412,8 @@ version(HasSDL2)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `windowExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
+                 * `mouseWheelUp`, `mouseWheelDown`, `windowExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
@@ -399,6 +421,9 @@ version(HasSDL2)
                     assert(_event.common.type == SDL_KEYDOWN
                         || _event.common.type == SDL_KEYUP
                         || _event.common.type == SDL_MOUSEMOTION
+                        || _event.common.type == SDL_MOUSEBUTTONDOWN
+                        || _event.common.type == SDL_MOUSEBUTTONUP
+                        || (_event.common.type == SDL_MOUSEWHEEL && _event.wheel.y != 0)
                         || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
@@ -407,6 +432,13 @@ version(HasSDL2)
                     {
                         case SDL_MOUSEMOTION:
                             return _engine.display.displayFromHandle(_event.motion.windowID);
+
+                        case SDL_MOUSEBUTTONDOWN:
+                        case SDL_MOUSEBUTTONUP:
+                            return _engine.display.displayFromHandle(_event.button.windowID);
+
+                        case SDL_MOUSEWHEEL:
+                            return _engine.display.displayFromHandle(_event.wheel.windowID);
 
                         case SDL_KEYUP:
                         case SDL_KEYDOWN:
@@ -439,14 +471,19 @@ version(HasSDL2)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyUp`, `mouseMove`, `windowExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
+                 * `mouseWheelUp`, `mouseWheelDown`, `windowExpose`.
                  */
                 public @property E.backendType.Display.handleType
                     displayHandle() const nothrow @nogc
                 in
                 {
-                    assert(_event.common.type == SDL_MOUSEMOTION
+                    assert(_event.common.type == SDL_KEYDOWN
                         || _event.common.type == SDL_KEYUP
+                        || _event.common.type == SDL_MOUSEMOTION
+                        || _event.common.type == SDL_MOUSEBUTTONDOWN
+                        || _event.common.type == SDL_MOUSEBUTTONUP
+                        || (_event.common.type == SDL_MOUSEWHEEL && _event.wheel.y != 0)
                         || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
@@ -455,6 +492,13 @@ version(HasSDL2)
                     {
                         case SDL_MOUSEMOTION:
                             return _event.motion.windowID;
+
+                        case SDL_MOUSEBUTTONDOWN:
+                        case SDL_MOUSEBUTTONUP:
+                            return _event.button.windowID;
+
+                        case SDL_MOUSEWHEEL:
+                            return _event.wheel.windowID;
 
                         case SDL_KEYUP:
                         case SDL_KEYDOWN:
@@ -512,7 +556,29 @@ version(HasSDL2)
                 return _event.motion.y;
             }
 
-            // TODO: Add more mouse stuff.
+            /**
+             * Returns the mouse button that generated the event.
+             *
+             * Valid for: `mouseDown`, `mouseUp`.
+             */
+            public @property MouseButton mouseButton() const nothrow @nogc
+            in
+            {
+                assert(_event.type == SDL_MOUSEBUTTONDOWN
+                    || _event.type == SDL_MOUSEBUTTONUP);
+            }
+            body
+            {
+                switch(_event.button.button)
+                {
+                    case SDL_BUTTON_LEFT: return MouseButton.left;
+                    case SDL_BUTTON_MIDDLE: return MouseButton.middle;
+                    case SDL_BUTTON_RIGHT: return MouseButton.right;
+                    case SDL_BUTTON_X1: return MouseButton.extra1;
+                    case SDL_BUTTON_X2: return MouseButton.extra2;
+                    default: return MouseButton.other;
+                }
+            }
         }
 
         /**
