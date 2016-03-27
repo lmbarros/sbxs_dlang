@@ -23,11 +23,20 @@ public enum EventType
      */
     draw,
 
+    /// A keyboard key was pressed.
+    keyDown,
+
     /// A keyboard key was released.
     keyUp,
 
     /// The mouse pointer has moved.
     mouseMove,
+
+    /// A mouse button was pressed.
+    mouseDown,
+
+    /// A mouse button was released.
+    mouseUp,
 
     /// A Display (or part of it) was exposed and should be redrawn.
     displayExpose,

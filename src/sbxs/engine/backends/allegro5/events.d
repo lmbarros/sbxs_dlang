@@ -320,6 +320,7 @@ version(HasAllegro5)
                     case userEventTypeDraw: return EventType.draw;
                     case userEventTypeTick: return EventType.tick;
                     case ALLEGRO_EVENT_KEY_UP: return EventType.keyUp;
+                    case ALLEGRO_EVENT_KEY_DOWN: return EventType.keyDown;
                     case ALLEGRO_EVENT_MOUSE_AXES: return EventType.mouseMove;
                     case ALLEGRO_EVENT_DISPLAY_EXPOSE: return EventType.displayExpose;
                     default: return EventType.unknown;
@@ -411,12 +412,13 @@ version(HasAllegro5)
             /**
              * Returns the `KeyCode` for the key generating the event.
              *
-             * Valid for: `keyUp`.
+             * Valid for: `keyDown`, `keyUp`.
              */
             public @property KeyCode keyCode() const nothrow @nogc
             in
             {
-                assert(_event.type == ALLEGRO_EVENT_KEY_UP);
+                assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
+                    || _event.type == ALLEGRO_EVENT_KEY_UP);
             }
             body
             {
@@ -431,13 +433,14 @@ version(HasAllegro5)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyUp`, `mouseMove`, `displayExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `displayExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
                 {
-                    assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
+                    assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
                         || _event.type == ALLEGRO_EVENT_KEY_UP
+                        || _event.type == ALLEGRO_EVENT_MOUSE_AXES
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -450,6 +453,7 @@ version(HasAllegro5)
                                 cast(size_t)_event.mouse.display);
                         }
 
+                        case ALLEGRO_EVENT_KEY_DOWN:
                         case ALLEGRO_EVENT_KEY_UP:
                         {
                             return _engine.display.displayFromHandle(
@@ -476,14 +480,15 @@ version(HasAllegro5)
                  * TODO: Er, and what about "null"? Do I need a special
                  *     "invalidHandle" constant?
                  *
-                 * Valid for: `keyUp`, `mouseMove`, `displayExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `displayExpose`.
                  */
                 public @property E.backendType.Display.handleType
                     displayHandle() const nothrow @nogc
                 in
                 {
-                    assert(_event.type == ALLEGRO_EVENT_MOUSE_AXES
+                    assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
                         || _event.type == ALLEGRO_EVENT_KEY_UP
+                        || _event.type == ALLEGRO_EVENT_MOUSE_AXES
                         || _event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE);
                 }
                 body
@@ -496,6 +501,7 @@ version(HasAllegro5)
                             return cast(handleType)_event.mouse.display;
 
                         case ALLEGRO_EVENT_KEY_UP:
+                        case ALLEGRO_EVENT_KEY_DOWN:
                             return cast(handleType)_event.keyboard.display;
 
                         case ALLEGRO_EVENT_DISPLAY_EXPOSE:

@@ -266,11 +266,11 @@ version(HasSDL2)
             /// Returns the event type.
             public @property EventType type() const nothrow @nogc
             {
-                // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                 switch (_event.type)
                 {
                     case sdlEventTypeDraw: return EventType.draw;
                     case sdlEventTypeTick: return EventType.tick;
+                    case SDL_KEYDOWN: return EventType.keyDown;
                     case SDL_KEYUP: return EventType.keyUp;
                     case SDL_MOUSEMOTION: return EventType.mouseMove;
                     case SDL_WINDOWEVENT:
@@ -370,12 +370,13 @@ version(HasSDL2)
             /**
              * Returns the `KeyCode` for the key generating the event.
              *
-             * Valid for: `keyUp`.
+             * Valid for: `keyDown`, `keyUp`.
              */
             public @property KeyCode keyCode() const nothrow @nogc
             in
             {
-                assert(_event.common.type == SDL_KEYUP);
+                assert(_event.common.type == SDL_KEYDOWN
+                    || _event.common.type == SDL_KEYUP);
             }
             body
             {
@@ -390,13 +391,14 @@ version(HasSDL2)
                  * TODO: Er, and what about "null"? Do I need a special "invalidHandle" constant?
                  *     What is the SDL ID of an "invalid window"? Zero?
                  *
-                 * Valid for: `keyUp`, `mouseMove`, `windowExpose`.
+                 * Valid for: `keyDown`, `keyUp`, `mouseMove`, `windowExpose`.
                  */
                 public @property inout(E.backendType.Display*) display() inout nothrow @nogc
                 in
                 {
-                    assert(_event.common.type == SDL_MOUSEMOTION
+                    assert(_event.common.type == SDL_KEYDOWN
                         || _event.common.type == SDL_KEYUP
+                        || _event.common.type == SDL_MOUSEMOTION
                         || _event.isWinEvent(SDL_WINDOWEVENT_EXPOSED));
                 }
                 body
@@ -407,6 +409,7 @@ version(HasSDL2)
                             return _engine.display.displayFromHandle(_event.motion.windowID);
 
                         case SDL_KEYUP:
+                        case SDL_KEYDOWN:
                             return _engine.display.displayFromHandle(_event.key.windowID);
 
                         case SDL_WINDOWEVENT:
@@ -454,6 +457,7 @@ version(HasSDL2)
                             return _event.motion.windowID;
 
                         case SDL_KEYUP:
+                        case SDL_KEYDOWN:
                             return _event.key.windowID;
 
                         case SDL_WINDOWEVENT:
