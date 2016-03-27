@@ -31,7 +31,7 @@ version(HasAllegro5)
          * Parameters:
          *     params = The parameters specifying how the Display shall be like.
          */
-        public this(DisplayParams params)
+        package(sbxs.engine) this(DisplayParams params)
         {
             // TODO: Ensure that OpenGL is used.
             // TODO: Take `params` into account for real.
@@ -161,48 +161,6 @@ version(HasAllegro5)
 
         /// Shuts the subsystem down.
         public void shutdown() nothrow @nogc { }
-
-        /**
-         * Creates and returns a Display.
-         *
-         * Parameters:
-         *     params = The parameters describing the desired Display
-         *         characteristics.
-         *
-         *  xxxxxxxxxxxxxxxxxxx duplicate! get rid!
-         */
-        public Display create(DisplayParams params)
-        {
-            auto newDisplay = Display(params);
-            _handleToDisplay[newDisplay.handle] = newDisplay;
-            return newDisplay;
-        }
-
-        /**
-         * Converts an SDL window ID to a Display.
-         *
-         * Parameters:
-         *     handle = The Display handle handle (an SDL window ID).
-         *
-         * Returns: The Display whose handle is `handle`. May be `null`, if no
-         *     such Display exists.
-
-         *  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx duplicate! get rid!
-
-         */
-        public inout(Display*) displayFromHandle(Display.handleType handle) inout
-        {
-            auto pDisplay = handle in _handleToDisplay;
-            if (pDisplay is null)
-                return null;
-            else
-                return pDisplay;
-        }
-
-        /// Maps window IDs to Displays.
-        // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        // TODO: Move this to the engine common code!
-        private Display[Display.handleType] _handleToDisplay;
 
         /// The type used as Display.
         public alias Display = Allegro5Display;

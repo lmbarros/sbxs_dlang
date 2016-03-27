@@ -133,7 +133,7 @@ package struct DisplaySubsystem(E)
     /// Shuts the subsystem down.
     package void shutdown()
     {
-        foreach (ref display; _displays)
+        foreach (ref display; _displaysByHandle)
             display.destroy();
     }
 
@@ -146,8 +146,8 @@ package struct DisplaySubsystem(E)
      */
     public Display create(DisplayParams params)
     {
-        auto newDisplay = _engine.backend.display.create(params);
-        _displays ~= newDisplay;
+        auto newDisplay = Display(params);
+        _displaysByHandle[newDisplay.handle] = newDisplay;
         return newDisplay;
     }
 
@@ -160,16 +160,21 @@ package struct DisplaySubsystem(E)
      */
     public inout(Display*) displayFromHandle(Display.handleType handle) inout
     {
-        return _engine.backend.display.displayFromHandle(handle);
+        auto pDisplay = handle in _displaysByHandle;
+        if (pDisplay is null)
+            return null;
+        else
+            return pDisplay;
     }
 
     /// Swap the buffers of all Displays.
     package void swapAllBuffers()
     {
-        foreach (ref display; _displays)
+        foreach (ref display; _displaysByHandle)
             display.swapBuffers();
     }
 
-    /// The Displays managed by this back end.
-    private Display[] _displays;
+    /// The Displays managed by this back end, indexed by their handles.
+    private Display[Display.handleType] _displaysByHandle;
+
 }

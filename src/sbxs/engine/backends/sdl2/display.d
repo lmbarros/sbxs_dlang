@@ -32,7 +32,7 @@ version(HasSDL2)
          * Parameters:
          *     params = The parameters specifying how the Display shall be like.
          */
-        public this(DisplayParams params)
+        package(sbxs.engine) this(DisplayParams params)
         {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, params.graphicsAPIMajorVersion);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, params.graphicsAPIMinorVersion);
@@ -194,41 +194,6 @@ version(HasSDL2)
         {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }
-
-        /**
-         * Creates and returns a Display.
-         *
-         * Parameters:
-         *     params = The parameters describing the desired Display
-         *         characteristics.
-         */
-        public Display create(DisplayParams params)
-        {
-            auto newDisplay = Display(params);
-            _handleToDisplay[newDisplay.handle] = newDisplay;
-            return newDisplay;
-        }
-
-        /**
-         * Converts an SDL window ID to a Display.
-         *
-         * Parameters:
-         *     handle = The Display handle handle (an SDL window ID).
-         *
-         * Returns: The Display whose handle is `handle`. May be `null`, if no
-         *     such Display exists.
-         */
-        public inout(Display*) displayFromHandle(Display.handleType handle) inout
-        {
-            auto pDisplay = handle in _handleToDisplay;
-            if (pDisplay is null)
-                return null;
-            else
-                return pDisplay;
-        }
-
-        /// Maps window IDs to Displays.
-        private Display[Display.handleType] _handleToDisplay;
 
         /// The type used as Display.
         public alias Display = SDL2Display;
