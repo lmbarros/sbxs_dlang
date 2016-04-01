@@ -27,12 +27,12 @@ unittest
 
     try
     {
-       throw new SBXSException("Augh!");
+        throw new SBXSException("Augh!");
     }
     catch(SBXSException e)
     {
-       assert(e.msg == "Augh!");
-       caught = true;
+        assert(e.msg == "Augh!");
+        caught = true;
     }
 
     // Sanity check: did we really got into that exception handler?
