@@ -26,7 +26,7 @@ shallThisFileBeIgnored()
     fi
 
     # Ignore engine back ends
-    echo "$1" | grep -Eq "^..-src-sbxs-engine-backend"
+    echo "$1" | grep -Eq "^..-src-sbxs-engine-backends"
 
     if [ $? == 0 ]; then
         return 0

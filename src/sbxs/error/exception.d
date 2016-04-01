@@ -20,21 +20,51 @@ public class SBXSException: Exception
 }
 
 
+version(unittest)
+{
+    /// Checks if a given exception message includes `msg`.
+    void assertThrownWithMessage(T)(string msg)
+    {
+        bool caught = false;
+
+        try
+        {
+            throw new T(msg);
+        }
+        catch(T e)
+        {
+            import std.string: indexOf;
+            assert(indexOf(e.msg, msg) >= 0);
+            caught = true;
+        }
+
+        // Sanity check: did we really got into that exception handler?
+        assert(caught == true);
+    }
+
+    /// Checks if a given exception message doesn't include `msg`.
+    void assertThrownWithoutMessage(T)(string msg)
+    {
+        bool caught = false;
+
+        try
+        {
+            throw new T;
+        }
+        catch(T e)
+        {
+            import std.string: indexOf;
+            assert(indexOf(e.msg, msg) < 0);
+            caught = true;
+        }
+
+        // Sanity check: did we really got into that exception handler?
+        assert(caught == true);
+    }
+}
+
 // Not much to test in `SBXSException`. Just check if `msg` is as expected.
 unittest
 {
-    bool caught = false;
-
-    try
-    {
-        throw new SBXSException("Augh!");
-    }
-    catch(SBXSException e)
-    {
-        assert(e.msg == "Augh!");
-        caught = true;
-    }
-
-    // Sanity check: did we really got into that exception handler?
-    assert(caught == true);
+    assertThrownWithMessage!SBXSException("Augh!");
 }

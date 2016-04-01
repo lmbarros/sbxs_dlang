@@ -26,6 +26,27 @@ public class BackendException: SBXSException
 }
 
 
+// Not much to test in here. Just check if `msg` is as expected.
+unittest
+{
+   bool caught = false;
+
+   try
+   {
+      throw new BackendException("Augh!");
+   }
+   catch(BackendException e)
+   {
+      assert(e.msg == "Augh!");
+      caught = true;
+   }
+
+   // Sanity check: did we really got into that exception handler?
+   assert(caught == true);
+}
+
+
+
 /**
  * Exception thrown when an error happens during the initialization of the
  * back end.
@@ -50,6 +71,14 @@ public class BackendInitializationException: BackendException
     }
 }
 
+// Not much to test in here. Just check if `msg` is somewhat as expected.
+unittest
+{
+    assertThrownWithMessage!BackendInitializationException("Augh!");
+    assertThrownWithoutMessage!BackendInitializationException("Augh!");
+}
+
+
 
 /// Exception thrown when an error happens while creating a display.
 public class DisplayCreationException: BackendException
@@ -70,4 +99,11 @@ public class DisplayCreationException: BackendException
                 : "The back end doesn't have anything else to say about it, sorry.";
         super(msg, file, line, next);
     }
+}
+
+// Not much to test in here. Just check if `msg` is somewhat as expected.
+unittest
+{
+    assertThrownWithMessage!DisplayCreationException("Augh!");
+    assertThrownWithoutMessage!DisplayCreationException("Augh!");
 }
