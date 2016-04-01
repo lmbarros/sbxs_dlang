@@ -23,18 +23,18 @@ public class SBXSException: Exception
 // Not much to test in `SBXSException`. Just check if `msg` is as expected.
 unittest
 {
-   bool caught = false;
+    bool caught = false;
 
-   try
-   {
-      throw new SBXSException("Augh!");
-   }
-   catch(SBXSException e)
-   {
-      assert(e.msg == "Augh!");
-      caught = true;
-   }
+    try
+    {
+       throw new SBXSException("Augh!");
+    }
+    catch(SBXSException e)
+    {
+       assert(e.msg == "Augh!");
+       caught = true;
+    }
 
-   // Sanity check: did we really got into that exception handler?
-   assert(caught == true);
+    // Sanity check: did we really got into that exception handler?
+    assert(caught == true);
 }
