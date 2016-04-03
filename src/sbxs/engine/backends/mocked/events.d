@@ -241,6 +241,15 @@ package struct MockedEventsSubsystem(E)
             return event;
         }
 
+        /// Creates a Display Resize event.
+        public static Event makeDisplayResizeEvent(E* engine, int width, int height,
+            displayHandleType displayHandle)
+        {
+            auto event = Event(engine, EventType.displayResize);
+            event._displayHandle = displayHandle;
+            return event;
+        }
+
 
         //
         // Event data

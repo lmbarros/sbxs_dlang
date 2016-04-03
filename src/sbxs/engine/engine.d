@@ -53,7 +53,7 @@ public struct Engine(BE)
     private alias engineType = Engine!backendType;
 
     /// The back end.
-    private backendType _backend;
+    package backendType _backend;
 
     /// Ditto
     package @property inout(backendType*) backend() inout { return &_backend; }
