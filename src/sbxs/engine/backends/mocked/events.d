@@ -484,20 +484,6 @@ package struct MockedEventsSubsystem(E)
         }
     }
 
-    /+
-    public enum
-    {
-        /// Event type used for tick events.
-        userEventTypeTick,
-
-        /// Event type used for draw events.
-        userEventTypeDraw,
-
-        /// Event type used for app state events.
-        userEventTypeAppState,
-    }
-    +/
-
     /**
      * Key codes.
      *
