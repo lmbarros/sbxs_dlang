@@ -23,13 +23,6 @@ shallThisFileBeIgnored()
     # Ignore test data for noise
     if [ "$1" == "..-src-sbxs-noise-test_data-open_simplex_noise_data.lst" ]; then
         return 0
-    fi
-
-    # Ignore engine back ends
-    echo "$1" | grep -Eq "^..-src-sbxs-engine-backends"
-
-    if [ $? == 0 ]; then
-        return 0
     else
         return 1
     fi
