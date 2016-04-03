@@ -22,6 +22,7 @@ local filesSBXS = { "../src/sbxs/**.d" }
 
 -- SBXS back ends source files.
 local filesSBXSBackends = { "../src/sbxs/engine/backends/**.d" }
+local filesSBXSMockedBackend = { "../src/sbxs/engine/backends/mocked/**.d" }
 
 
 -- Files to be compiled in for SDL 2 support.
@@ -95,8 +96,9 @@ project "UnitTests"
     flags { "UnitTest" }
     versionconstants { "ExtraUnitTests" }
 
-    -- Don't test the back ends
+    -- Don't test the back ends (well, test the mocked one)
     removefiles (filesSBXSBackends)
+    files (filesSBXSMockedBackend)
     removeversionconstants (versionAllDeps)
 
 
