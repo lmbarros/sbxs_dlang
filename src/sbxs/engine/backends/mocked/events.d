@@ -158,6 +158,66 @@ package struct MockedEventsSubsystem(E)
         return event;
     }
 
+    /// Creates a Mouse Move event; convenience for testing.
+    public Event makeMouseMoveEvent(int mouseX, int mouseY, displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.mouseMove);
+
+        event._mouseX = mouseX;
+        event._mouseY = mouseY;
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Mouse Down event; convenience for testing.
+    public Event makeMouseDownEvent(MouseButton mouseButton, int mouseX, int mouseY,
+        displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.mouseDown);
+
+        event._mouseX = mouseX;
+        event._mouseY = mouseY;
+        event._mouseButton = mouseButton;
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Mouse Up event; convenience for testing.
+    public Event makeMouseUpEvent(MouseButton mouseButton, int mouseX, int mouseY,
+        displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.mouseUp);
+
+        event._mouseX = mouseX;
+        event._mouseY = mouseY;
+        event._mouseButton = mouseButton;
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Mouse Wheel Up event; convenience for testing.
+    public Event makeMouseWheelUpEvent(displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.mouseWheelUp);
+
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Mouse Wheel Down event; convenience for testing.
+    public Event makeMouseWheelDownEvent(displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.mouseWheelDown);
+
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
     /// Creates a Display Resize event; convenience for testing.
     public Event makeDisplayResizeEvent(int width, int height,
         displayHandleType displayHandle)
@@ -387,6 +447,8 @@ package struct MockedEventsSubsystem(E)
                     || _type == EventType.mouseMove
                     || _type == EventType.mouseDown
                     || _type == EventType.mouseUp
+                    || _type == EventType.mouseWheelDown
+                    || _type == EventType.mouseWheelUp
                     || _type == EventType.displayResize
                     || _type == EventType.displayExpose);
             }
@@ -414,6 +476,8 @@ package struct MockedEventsSubsystem(E)
                     || _type == EventType.mouseMove
                     || _type == EventType.mouseDown
                     || _type == EventType.mouseUp
+                    || _type == EventType.mouseWheelDown
+                    || _type == EventType.mouseWheelUp
                     || _type == EventType.displayResize
                     || _type == EventType.displayExpose);
             }
@@ -633,6 +697,11 @@ unittest
     events.mockedEventQueue ~= events.makeTickEvent(0.1, 0.2);
     events.mockedEventQueue ~= events.makeKeyDownEvent(KeyCode.backspace, 333);
     events.mockedEventQueue ~= events.makeKeyUpEvent(KeyCode.f5, 222);
+    events.mockedEventQueue ~= events.makeMouseMoveEvent(33, 44, 111);
+    events.mockedEventQueue ~= events.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
+    events.mockedEventQueue ~= events.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
+    events.mockedEventQueue ~= events.makeMouseWheelUpEvent(666);
+    events.mockedEventQueue ~= events.makeMouseWheelDownEvent(777);
 
     // Dequeue and check events
     auto event = Event(&engine);
@@ -651,6 +720,34 @@ unittest
     assert(event.type == EventType.keyUp);
     assert(event.keyCode == KeyCode.f5);
     assert(event.displayHandle == 222);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.mouseMove);
+    assert(event.mouseX == 33);
+    assert(event.mouseY == 44);
+    assert(event.displayHandle == 111);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.mouseDown);
+    assert(event.mouseButton == MouseButton.left);
+    assert(event.mouseX == 100);
+    assert(event.mouseY == 20);
+    assert(event.displayHandle == 444);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.mouseUp);
+    assert(event.mouseButton == MouseButton.right);
+    assert(event.mouseX == 20);
+    assert(event.mouseY == 10);
+    assert(event.displayHandle == 555);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.mouseWheelUp);
+    assert(event.displayHandle == 666);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.mouseWheelDown);
+    assert(event.displayHandle == 777);
 
     // No more events
     assert(events.dequeueEvent(&event) == false);
