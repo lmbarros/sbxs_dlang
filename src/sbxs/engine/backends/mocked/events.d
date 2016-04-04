@@ -47,6 +47,9 @@ package struct MockedEventsSubsystem(E)
     /// The Engine using this subsystem back end.
     private E* _engine;
 
+    /// The type of Display handles.
+    private alias displayHandleType = E.backendType.Display.handleType;
+
     /**
      * The event queue.
      *
@@ -69,12 +72,13 @@ package struct MockedEventsSubsystem(E)
     body
     {
         _engine = engine;
+        _isInited = true;
     }
 
     /// Shuts the subsystem down.
     public void shutdown()
     {
-        // Nothing here.
+        _isInited = false;
     }
 
     /**
@@ -97,6 +101,8 @@ package struct MockedEventsSubsystem(E)
     /**
      * Creates and returns a draw event.
      *
+     * This is part of the interface every back end is supposed to implement.
+     *
      * Parameters:
      *     deltaTimeInSecs = The time elapsed, since the last draw event,
      *         in seconds.
@@ -110,8 +116,55 @@ package struct MockedEventsSubsystem(E)
     public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
         double timeSinceTickInSecs)
     {
-        return Event.makeDrawEvent(
-            _engine, deltaTimeInSecs, drawingTimeInSecs, timeSinceTickInSecs);
+        auto event = Event(_engine, EventType.draw);
+
+        event._drawEventData.deltaTimeInSecs = deltaTimeInSecs;
+        event._drawEventData.drawingTimeInSecs = drawingTimeInSecs;
+        event._drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
+
+        return event;
+    }
+
+    /// Creates a Tick event; convenience for testing.
+    public Event makeTickEvent(double deltaTimeInSecs, double tickTimeInSecs)
+    {
+        auto event = Event(_engine, EventType.tick);
+
+        event._tickEventData.deltaTimeInSecs = deltaTimeInSecs;
+        event._tickEventData.tickTimeInSecs = tickTimeInSecs;
+
+        return event;
+    }
+
+    /// Creates a Key Down event; convenience for testing.
+    public Event makeKeyDownEvent(KeyCode keyCode, displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.keyDown);
+
+        event._keyCode = keyCode;
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Key Up event; convenience for testing.
+    public Event makeKeyUpEvent(KeyCode keyCode, displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.keyUp);
+
+        event._keyCode = keyCode;
+        event._displayHandle = displayHandle;
+
+        return event;
+    }
+
+    /// Creates a Display Resize event; convenience for testing.
+    public Event makeDisplayResizeEvent(int width, int height,
+        displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.displayResize);
+        event._displayHandle = displayHandle;
+        return event;
     }
 
     /**
@@ -141,12 +194,15 @@ package struct MockedEventsSubsystem(E)
         return true;
     }
 
+    /// Is this back end initialized?
+    public @property bool isInited() const nothrow @nogc { return _isInited; }
+
+    /// Ditto
+    private bool _isInited = false;
+
     /// An event.
     public struct Event
     {
-        /// The type of Display handles.
-        private alias displayHandleType = E.backendType.Display.handleType;
-
         // Disable default constructor so that we can be surer that the
         // `_engine` member will be properly initialized.
         @disable this();
@@ -187,69 +243,6 @@ package struct MockedEventsSubsystem(E)
             _engine = engine;
             _type = type;
         }
-
-        //
-        // Constructor-like static methods
-        //
-
-        /// Creates a Draw event.
-        public static Event makeDrawEvent(E* engine, double deltaTimeInSecs,
-            double drawingTimeInSecs, double timeSinceTickInSecs)
-        {
-            auto event = Event(engine, EventType.draw);
-
-            event._drawEventData.deltaTimeInSecs = deltaTimeInSecs;
-            event._drawEventData.drawingTimeInSecs = drawingTimeInSecs;
-            event._drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
-
-            return event;
-        }
-
-        /// Creates a Tick event.
-        public static Event makeDrawEvent(E* engine, double deltaTimeInSecs,
-            double drawingTimeInSecs)
-        {
-            auto event = Event(engine, EventType.tick);
-
-            event._tickEventData.deltaTimeInSecs = deltaTimeInSecs;
-            event._tickEventData.tickTimeInSecs = drawingTimeInSecs;
-
-            return event;
-        }
-
-        /// Creates a Key Down event.
-        public static Event makeKeyDownEvent(E* engine, KeyCode keyCode,
-            displayHandleType displayHandle)
-        {
-            auto event = Event(engine, EventType.keyDown);
-
-            event._keyCode = keyCode;
-            event._displayHandle = displayHandle;
-
-            return event;
-        }
-
-        /// Creates a Key Up event.
-        public static Event makeKeyDownEvent(E* engine, KeyCode keyCode,
-            displayHandleType displayHandle)
-        {
-            auto event = Event(engine, EventType.keyUp);
-
-            event._keyCode = keyCode;
-            event._displayHandle = displayHandle;
-
-            return event;
-        }
-
-        /// Creates a Display Resize event.
-        public static Event makeDisplayResizeEvent(E* engine, int width, int height,
-            displayHandleType displayHandle)
-        {
-            auto event = Event(engine, EventType.displayResize);
-            event._displayHandle = displayHandle;
-            return event;
-        }
-
 
         //
         // Event data
@@ -526,4 +519,139 @@ package struct MockedEventsSubsystem(E)
 
         kpDivide,  kpMultiply,  kpMinus,  kpPlus,  kpDecimal, kpEnter,
     }
+}
+
+
+
+// -----------------------------------------------------------------------------
+// Unit tests
+// -----------------------------------------------------------------------------
+
+// Tests if the back end subsystem is properly initialized.
+unittest
+{
+    import sbxs.engine.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    MockedEventsSubsystem!(Engine!MockedBackend) events;
+
+    // Initially, not initialized
+    assert(!events.isInited);
+
+    // Initialize
+    events.initialize(&engine);
+    assert(events.isInited);
+
+    // Multiple initialization shouldn't be a problem
+    events.initialize(&engine);
+    assert(events.isInited);
+    events.initialize(&engine);
+    assert(events.isInited);
+
+    // After shutdown, back end should no longer be considered intialized
+    events.shutdown();
+    assert(!events.isInited);
+}
+
+
+// Tests `enqueueTickEvent()`
+unittest
+{
+    import sbxs.engine.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    MockedEventsSubsystem!(Engine!MockedBackend) events;
+
+    events.initialize(&engine);
+
+    // Initially, no events in the queue
+    assert(events.mockedEventQueue.length == 0);
+
+    // Call `enqueueTickEvent()`, check if it works as expected
+    events.enqueueTickEvent(0.2, 0.1);
+    assert(events.mockedEventQueue.length == 1);
+
+    events.enqueueTickEvent(0.3, 0.35);
+    assert(events.mockedEventQueue.length == 2);
+
+    assert(events.mockedEventQueue[0].type == EventType.tick);
+    assert(events.mockedEventQueue[0].deltaTimeInSecs == 0.2);
+    assert(events.mockedEventQueue[0].tickTimeInSecs == 0.1);
+
+    assert(events.mockedEventQueue[1].type == EventType.tick);
+    assert(events.mockedEventQueue[1].deltaTimeInSecs == 0.3);
+    assert(events.mockedEventQueue[1].tickTimeInSecs == 0.35);
+}
+
+
+// Tests `makeDrawEvent()`
+unittest
+{
+    import sbxs.engine.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    MockedEventsSubsystem!(Engine!MockedBackend) events;
+
+    events.initialize(&engine);
+
+    // Call `makeDrawEvent()`, check if it works as expected
+    auto event = events.makeDrawEvent(0.1, 0.15, 0.2);
+
+    assert(event.type == EventType.draw);
+    assert(event.deltaTimeInSecs == 0.1);
+    assert(event.drawingTimeInSecs == 0.15);
+    assert(event.timeSinceTickInSecs == 0.2);
+
+    // Again, again!
+    event = events.makeDrawEvent(0.3, 0.35, 0.4);
+
+    assert(event.type == EventType.draw);
+    assert(event.deltaTimeInSecs == 0.3);
+    assert(event.drawingTimeInSecs == 0.35);
+    assert(event.timeSinceTickInSecs == 0.4);
+}
+
+
+// Create several different events, enqueue and dequeue them.
+unittest
+{
+    import sbxs.engine.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    MockedEventsSubsystem!(Engine!MockedBackend) events;
+
+    events.initialize(&engine);
+
+    alias KeyCode = MockedEventsSubsystem!(Engine!MockedBackend).KeyCode;
+    alias Event = MockedEventsSubsystem!(Engine!MockedBackend).Event;
+
+    // Create and enqueue events
+    events.mockedEventQueue ~= events.makeTickEvent(0.1, 0.2);
+    events.mockedEventQueue ~= events.makeKeyDownEvent(KeyCode.backspace, 333);
+    events.mockedEventQueue ~= events.makeKeyUpEvent(KeyCode.f5, 222);
+
+    // Dequeue and check events
+    auto event = Event(&engine);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.tick);
+    assert(event.deltaTimeInSecs == 0.1);
+    assert(event.tickTimeInSecs == 0.2);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.keyDown);
+    assert(event.keyCode == KeyCode.backspace);
+    assert(event.displayHandle == 333);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.keyUp);
+    assert(event.keyCode == KeyCode.f5);
+    assert(event.displayHandle == 222);
+
+    // No more events
+    assert(events.dequeueEvent(&event) == false);
 }

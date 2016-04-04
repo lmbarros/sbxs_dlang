@@ -74,9 +74,9 @@ public struct MockedDisplay
         _width = width;
         _height = height;
 
-        // Generate a resize event. (Here we assume that a MockedBackend is being used.)
-        auto event = MockedEventsSubsystem!E.Event.makeDisplayResizeEvent(
-            engine, width, height, displayHandle);
+        // Generate a resize event.
+        static assert(is(typeof(engine._backend) == MockedBackend));
+        auto event = engine._backend.events.makeDisplayResizeEvent(width, height, displayHandle);
 
         engine._backend.events.mockedEventQueue ~= event;
     }
@@ -301,6 +301,8 @@ unittest
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
+    engine.initialize();
+
 
     DisplayParams params;
     params.width = 1000;
