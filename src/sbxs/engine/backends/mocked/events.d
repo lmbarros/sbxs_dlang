@@ -219,10 +219,17 @@ package struct MockedEventsSubsystem(E)
     }
 
     /// Creates a Display Resize event; convenience for testing.
-    public Event makeDisplayResizeEvent(int width, int height,
-        displayHandleType displayHandle)
+    public Event makeDisplayResizeEvent(displayHandleType displayHandle)
     {
         auto event = Event(_engine, EventType.displayResize);
+        event._displayHandle = displayHandle;
+        return event;
+    }
+
+    /// Creates a Display Expose event; convenience for testing.
+    public Event makeDisplayExposeEvent(displayHandleType displayHandle)
+    {
+        auto event = Event(_engine, EventType.displayExpose);
         event._displayHandle = displayHandle;
         return event;
     }
@@ -695,9 +702,9 @@ unittest
 
     // Create and enqueue events
     events.mockedEventQueue ~= events.makeTickEvent(0.1, 0.2);
-    events.mockedEventQueue ~= events.makeKeyDownEvent(KeyCode.backspace, 333);
+    events.mockedEventQueue ~= events.makeKeyDownEvent(KeyCode.backspace, 111);
     events.mockedEventQueue ~= events.makeKeyUpEvent(KeyCode.f5, 222);
-    events.mockedEventQueue ~= events.makeMouseMoveEvent(33, 44, 111);
+    events.mockedEventQueue ~= events.makeMouseMoveEvent(33, 44, 333);
     events.mockedEventQueue ~= events.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
     events.mockedEventQueue ~= events.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
     events.mockedEventQueue ~= events.makeMouseWheelUpEvent(666);
@@ -714,7 +721,7 @@ unittest
     assert(events.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyDown);
     assert(event.keyCode == KeyCode.backspace);
-    assert(event.displayHandle == 333);
+    assert(event.displayHandle == 111);
 
     assert(events.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyUp);
@@ -725,7 +732,7 @@ unittest
     assert(event.type == EventType.mouseMove);
     assert(event.mouseX == 33);
     assert(event.mouseY == 44);
-    assert(event.displayHandle == 111);
+    assert(event.displayHandle == 333);
 
     assert(events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseDown);
@@ -751,4 +758,40 @@ unittest
 
     // No more events
     assert(events.dequeueEvent(&event) == false);
+}
+
+// Test Display events with real Displays
+unittest
+{
+    import sbxs.engine.engine;
+    import sbxs.engine.display;
+    import sbxs.engine.backends.mocked;
+
+    alias Event = MockedEventsSubsystem!(Engine!MockedBackend).Event;
+
+    Engine!MockedBackend engine;
+    MockedEventsSubsystem!(Engine!MockedBackend) events;
+
+    events.initialize(&engine);
+
+    DisplayParams params;
+    params.title = "Aigale!";
+    auto display = engine.display.create(params);
+
+    // Create and enqueue events
+    events.mockedEventQueue ~= events.makeDisplayResizeEvent(display.handle);
+    events.mockedEventQueue ~= events.makeDisplayExposeEvent(display.handle);
+
+    // Dequeue and check events
+    auto event = Event(&engine);
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.displayResize);
+    assert(event.displayHandle == display.handle);
+    assert(event.display.title == "Aigale!");
+
+    assert(events.dequeueEvent(&event) == true);
+    assert(event.type == EventType.displayExpose);
+    assert(event.displayHandle == display.handle);
+    assert(event.display.title == "Aigale!");
 }

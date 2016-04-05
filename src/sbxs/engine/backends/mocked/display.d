@@ -76,7 +76,7 @@ public struct MockedDisplay
 
         // Generate a resize event.
         static assert(is(typeof(engine._backend) == MockedBackend));
-        auto event = engine._backend.events.makeDisplayResizeEvent(width, height, displayHandle);
+        auto event = engine._backend.events.makeDisplayResizeEvent(displayHandle);
 
         engine._backend.events.mockedEventQueue ~= event;
     }
