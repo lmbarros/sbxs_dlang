@@ -12,8 +12,7 @@ version(HasAllegro5)
 {
     import derelict.allegro5.allegro;
     import derelict.opengl3.gl3;
-    import sbxs.engine.backend;
-    import sbxs.engine.display;
+    import sbxs.engine;
 
     /**
      * Allegro 5 implementation of a Display.

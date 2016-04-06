@@ -8,7 +8,7 @@
  * TODO: Make this have something to do with its "maze" name.
  */
 
-import sbxs.engine.engine;
+import sbxs.engine;
 
 // All back end-dependant stuff goes here
 version(UseSDL2)
@@ -35,9 +35,6 @@ else
 void main()
 {
     import std.stdio;
-    // TODO: Hmm, `import sbxs.engine` anyone?
-    import sbxs.engine.events;
-    import sbxs.engine.display;
 
     Engine_t engine;
     engine.initialize();

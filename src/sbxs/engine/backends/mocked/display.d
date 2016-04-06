@@ -8,8 +8,8 @@
 
 module sbxs.engine.backends.mocked.display;
 
-import sbxs.engine.backend;
-import sbxs.engine.display;
+import sbxs.engine;
+
 
 /**
  * Mocked implementation of a Display.
@@ -196,7 +196,7 @@ package struct MockedDisplaySubsystem(E)
 // Test if the back end subsystem is properly initialized.
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -296,13 +296,11 @@ unittest
 // Test Display resize.
 unittest
 {
-    import sbxs.engine.engine;
-    import sbxs.engine.events;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
     engine.initialize();
-
 
     DisplayParams params;
     params.width = 1000;

@@ -8,8 +8,8 @@
 
 module sbxs.engine.backends.mocked.events;
 
-import sbxs.engine.backend;
-import sbxs.engine.events;
+import sbxs.engine;
+
 
 /// Data associated with tick events.
 private struct TickEventData
@@ -601,7 +601,7 @@ package struct MockedEventsSubsystem(E)
 // Tests if the back end subsystem is properly initialized.
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -629,7 +629,7 @@ unittest
 // Tests `enqueueTickEvent()`
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -660,7 +660,7 @@ unittest
 // Tests `makeDrawEvent()`
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -689,7 +689,7 @@ unittest
 // Create several different events, enqueue and dequeue them.
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -763,8 +763,7 @@ unittest
 // Test Display events with real Displays
 unittest
 {
-    import sbxs.engine.engine;
-    import sbxs.engine.display;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     alias Event = MockedEventsSubsystem!(Engine!MockedBackend).Event;

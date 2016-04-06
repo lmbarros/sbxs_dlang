@@ -131,7 +131,7 @@ package struct MockedOSSubsystem(E)
 // Tests if the back end subsystem is properly initialized.
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
     Engine!MockedBackend engine;
@@ -159,7 +159,7 @@ unittest
 // Tests if time passes as expected.
 unittest
 {
-    import sbxs.engine.engine;
+    import sbxs.engine;
     import sbxs.engine.backends.mocked;
     import sbxs.util.test;
 

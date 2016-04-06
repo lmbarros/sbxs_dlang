@@ -12,11 +12,8 @@ module sbxs.engine.backends.allegro5.backend;
 version(HasAllegro5)
 {
     import derelict.allegro5.allegro;
-    import sbxs.engine.backend;
-    import sbxs.engine.engine;
-    import sbxs.engine.backends.allegro5.os;
-    import sbxs.engine.backends.allegro5.display;
-    import sbxs.engine.backends.allegro5.events;
+    import sbxs.engine;
+    import sbxs.engine.backends.allegro5;
 
     /// Engine back end based on the Allegro 5 library.
     public struct Allegro5Backend

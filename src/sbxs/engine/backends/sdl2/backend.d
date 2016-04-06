@@ -11,11 +11,8 @@ module sbxs.engine.backends.sdl2.backend;
 version(HasSDL2)
 {
     import derelict.sdl2.sdl;
-    import sbxs.engine.backend;
-    import sbxs.engine.engine;
-    import sbxs.engine.backends.sdl2.os;
-    import sbxs.engine.backends.sdl2.display;
-    import sbxs.engine.backends.sdl2.events;
+    import sbxs.engine;
+    import sbxs.engine.backends.sdl2;
 
     /// Engine back end based on the SDL 2 library.
     public struct SDL2Backend

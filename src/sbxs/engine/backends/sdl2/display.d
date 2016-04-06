@@ -12,8 +12,7 @@ version(HasSDL2)
 {
     import derelict.sdl2.sdl;
     import derelict.opengl3.gl3;
-    import sbxs.engine.backend;
-    import sbxs.engine.display;
+    import sbxs.engine;
     import sbxs.engine.backends.sdl2.helpers;
 
     /**

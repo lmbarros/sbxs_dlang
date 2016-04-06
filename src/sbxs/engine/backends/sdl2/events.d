@@ -11,8 +11,7 @@ module sbxs.engine.backends.sdl2.events;
 version(HasSDL2)
 {
     import derelict.sdl2.sdl;
-    import sbxs.engine.backend;
-    import sbxs.engine.events;
+    import sbxs.engine;
     import sbxs.engine.backends.sdl2.helpers;
 
     /// Checks if the event passed is an SDL window event of the given type.

@@ -11,8 +11,7 @@ module sbxs.engine.backends.allegro5.events;
 version(HasAllegro5)
 {
     import derelict.allegro5.allegro;
-    import sbxs.engine.backend;
-    import sbxs.engine.events;
+    import sbxs.engine;
 
     /// Data associated with tick events.
     private struct TickEventData

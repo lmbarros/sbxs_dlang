@@ -9,11 +9,8 @@
 module sbxs.engine.backends.mocked.backend;
 
 
-import sbxs.engine.backend;
-import sbxs.engine.engine;
-import sbxs.engine.backends.mocked.os;
-import sbxs.engine.backends.mocked.display;
-import sbxs.engine.backends.mocked.events;
+import sbxs.engine;
+import sbxs.engine.backends.mocked;
 
 /// A mocked engine back end, used for testing.
 public struct MockedBackend
