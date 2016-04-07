@@ -12,39 +12,15 @@ version(HasSDL2)
 {
     import derelict.sdl2.sdl;
     import sbxs.engine;
+    import sbxs.engine.backends.events_common;
     import sbxs.engine.backends.sdl2.helpers;
+
 
     /// Checks if the event passed is an SDL window event of the given type.
     private bool isWinEvent(const ref SDL_Event event, uint type) nothrow @nogc pure
     {
         return event.common.type == SDL_WINDOWEVENT && event.window.event == type;
     }
-
-
-    /// Data associated with tick events.
-    private struct TickEventData
-    {
-        /// Time elapsed since the last tick event, in seconds.
-        public double deltaTimeInSecs;
-
-        /// Time elapsed since the program started to run, in seconds.
-        public double tickTimeInSecs;
-    }
-
-
-    /// Data associated with draw events.
-    private struct DrawEventData
-    {
-        /// Time elapsed since the last draw event, in seconds.
-        public double deltaTimeInSecs;
-
-        /// Time elapsed since the program started to run, in seconds.
-        public double drawingTimeInSecs;
-
-        /// Time elapsed since the last tick event, in seconds.
-        public double timeSinceTickInSecs;
-    }
-
 
     /**
      * Events engine subsystem back end, based on the SDL 2 library.
