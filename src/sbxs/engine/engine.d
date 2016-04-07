@@ -115,3 +115,31 @@ public struct Engine(BE)
         public alias Display = backendType.display.Display;
     }
 }
+
+
+
+// -----------------------------------------------------------------------------
+// Unit tests
+// -----------------------------------------------------------------------------
+
+// Check if the engine initializes and shuts down all back end subsystems.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+
+    // Before initializing the engine itself, nothing is initialized.
+    assert(engine.backend.isInited == false);
+    assert(engine.backend.display.isInited == false);
+    assert(engine.backend.events.isInited == false);
+    assert(engine.backend.os.isInited == false);
+
+    // Now initialize -- hopefully, everything
+    engine.initialize();
+    assert(engine.backend.isInited == true);
+    assert(engine.backend.display.isInited == true);
+    assert(engine.backend.events.isInited == true);
+    assert(engine.backend.os.isInited == true);
+}
