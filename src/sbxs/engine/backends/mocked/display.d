@@ -22,6 +22,37 @@ import sbxs.engine;
 public struct MockedDisplay
 {
     /**
+     * The state of a `MockedDisplay`.
+     *
+     * This is placed in a `struct` to make it easier to allcoate in the
+     * heap, so that it is shared among all copies of a Display (recall
+     * that Displays shall have reference semantics).
+     */
+    private struct MockedDisplayState
+    {
+        /// A handle that uniquely identifies the Display.
+        handleType handle;
+
+        /// Is the Display initialized and ready-to-use?
+        bool isInited = false;
+
+        /// The Display width, in pixels.
+        int width = 0;
+
+        /// The Display height, in pixels.
+        int height = 0;
+
+        /// The Display title.
+        string title;
+
+        /// Number of times buffers were swapped.
+        int swapBuffersCount = 0;
+    }
+
+    /// The state of this Display.
+    private MockedDisplayState* _state = null;
+
+    /**
      * Constructs the `MockedDisplay`.
      *
      * Parameters:
@@ -29,41 +60,50 @@ public struct MockedDisplay
      */
     package(sbxs.engine) this(DisplayParams params)
     {
-        _handle = _nextDisplayHandle++;
-        _isInited = true;
+        if (_state is null)
+            _state = new MockedDisplayState();
+
+        _state.handle = _nextDisplayHandle++;
+        _state.isInited = true;
 
         // Set the Display parameters
-        _title = params.title;
-        _width = params.width;
-        _height = params.height;
+        _state.title = params.title;
+        _state.width = params.width;
+        _state.height = params.height;
 
         // Make it the current one
-        _currentDisplay = _handle;
+        _currentDisplay = _state.handle;
     }
 
     /// Destroys the Display.
-    package(sbxs.engine) void destroy() nothrow @nogc
+    package(sbxs.engine) void destroy() //nothrow @nogc
     {
-        _isInited = false;
+        _state.isInited = false;
     }
 
     /// The Display width, in pixels.
     public @property int width() nothrow @nogc
     {
-        return _width;
+        return _state.width;
     }
 
     /// Ditto
-    private int _width = 0;
+    public @property void width(int newWidth) nothrow @nogc
+    {
+        _state.width = newWidth;
+    }
 
     /// The Display height, in pixels.
     public @property int height() nothrow @nogc
     {
-        return _height;
+        return _state.height;
     }
 
     /// Ditto
-    private int _height = 0;
+    public @property void height(int newHeight) nothrow @nogc
+    {
+        _state.height = newHeight;
+    }
 
     /// Resizes the Display
     public void resize(E)(E* engine, int width, int height, handleType displayHandle)
@@ -71,8 +111,8 @@ public struct MockedDisplay
         import sbxs.engine.backends.mocked;
 
         // Update the internal state
-        _width = width;
-        _height = height;
+        _state.width = width;
+        _state.height = height;
 
         // Generate a resize event.
         static assert(is(typeof(engine._backend) == MockedBackend));
@@ -84,13 +124,19 @@ public struct MockedDisplay
     /// The Display title.
     public @property string title() nothrow @nogc const
     {
-        return _title;
+        return _state.title;
+    }
+
+    /// Ditto
+    public @property void title(string newTitle) nothrow @nogc
+    {
+        _state.title = newTitle;
     }
 
     /// Make this Display the current target for rendering.
     public void makeCurrent() nothrow @nogc
     {
-        _currentDisplay = _handle;
+        _currentDisplay = _state.handle;
     }
 
     /**
@@ -100,26 +146,20 @@ public struct MockedDisplay
      */
     public void swapBuffers() nothrow @nogc
     {
-        ++_swapBuffersCount;
+        ++_state.swapBuffersCount;
     }
 
     /// A handle that uniquely identifies this Display.
     public @property handleType handle() nothrow @nogc
     {
-        return _handle;
+        return _state.handle;
     }
 
     /// Is this Display initialized and ready-to-use?
-    public @property bool isInited() const nothrow @nogc { return _isInited; }
-
-    /// Ditto
-    private bool _isInited = false;
+    public @property bool isInited() const nothrow @nogc { return _state.isInited; }
 
     /// Number of times buffers were swapped.
-    public @property int swapBuffersCount() const nothrow @nogc { return _swapBuffersCount; }
-
-    /// Ditto
-    private int _swapBuffersCount = 0;
+    public @property int swapBuffersCount() const nothrow @nogc { return _state.swapBuffersCount; }
 
     /// A type for a handle that uniquely identifies a Display.
     public alias handleType = size_t;
@@ -129,12 +169,6 @@ public struct MockedDisplay
 
     /// Ditto
     private static handleType _currentDisplay = 0;
-
-    /// The handle representing the Display.
-    private handleType _handle;
-
-    /// The Display title.
-    private string _title;
 
     /// The handle for the next Display created.
     private static int _nextDisplayHandle = 1;
@@ -245,12 +279,41 @@ unittest
 }
 
 
+// Test if Displays are really reference types.
+unittest
+{
+    DisplayParams params;
+    params.title = "A Display";
+    params.width = 600;
+    params.height = 400;
+
+    auto display = MockedDisplay(params);
+
+    // Check the Display parameters
+    assert(display.title == "A Display");
+    assert(display.width == 600);
+    assert(display.height == 400);
+
+    // Create a new reference to the Display, change it through the new reference
+    auto sameDisplay = display;
+    sameDisplay.title = "Same Display";
+    sameDisplay.width = 1920;
+    sameDisplay.height = 1080;
+
+    assert(display.title == "Same Display");
+    assert(display.width == 1920);
+    assert(display.height == 1080);
+
+    // Destroy the Display through the other reference
+    sameDisplay.destroy();
+    assert(!display.isInited);
+    assert(!sameDisplay.isInited);
+}
+
+
 // Test multiple Displays.
 unittest
 {
-    // The current display shall be initially zero
-    assert(MockedDisplay.currentDisplay == 0);
-
     // Create a Display, it shall become the current one
     DisplayParams params1;
     params1.title = "My first mocked display";
