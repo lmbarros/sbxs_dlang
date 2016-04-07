@@ -187,5 +187,114 @@ package struct DisplaySubsystem(E)
 
     /// The Displays managed by this back end, indexed by their handles.
     private Display[Display.handleType] _displaysByHandle;
+}
 
+
+
+// -----------------------------------------------------------------------------
+// Unit tests
+// -----------------------------------------------------------------------------
+
+// Tests if all Displays are destroyed once the subsystem is shut down.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+
+    DisplayParams params;
+    auto d1 = engine.display.create(params);
+    auto d2 = engine.display.create(params);
+    auto d3 = engine.display.create(params);
+    auto d4 = engine.display.create(params);
+
+    // Newly created Displays shall be initialized
+    assert(d1.isInited == true);
+    assert(d2.isInited == true);
+    assert(d3.isInited == true);
+    assert(d4.isInited == true);
+
+    // Manually destroy a Display
+    d2.destroy();
+    assert(d1.isInited == true);
+    assert(d2.isInited == false);
+    assert(d3.isInited == true);
+    assert(d4.isInited == true);
+
+    // Shut the engine down; all Displays shall be destroyed (and no error
+    // should happen with the already destroyed Display)
+    engine.shutdown();
+
+    assert(d1.isInited == false);
+    assert(d2.isInited == false);
+    assert(d3.isInited == false);
+    assert(d4.isInited == false);
+}
+
+
+// Tests `swapAllBuffers().
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+
+    // Create a pair of Displays
+    DisplayParams params;
+    auto d1 = engine.display.create(params);
+    auto d2 = engine.display.create(params);
+
+    // Newly created Displays shall have never swapped buffers
+    assert(d1.swapBuffersCount == 0);
+    assert(d2.swapBuffersCount == 0);
+
+    // Swap buffers
+    engine.display.swapAllBuffers();
+    assert(d1.swapBuffersCount == 1);
+    assert(d2.swapBuffersCount == 1);
+
+    // Create one more Display, swap buffers even more
+    auto d3 = engine.display.create(params);
+
+    engine.display.swapAllBuffers();
+    engine.display.swapAllBuffers();
+    engine.display.swapAllBuffers();
+    engine.display.swapAllBuffers();
+
+    assert(d1.swapBuffersCount == 5);
+    assert(d2.swapBuffersCount == 5);
+    assert(d3.swapBuffersCount == 4);
+}
+
+
+// Tests `displayFromHandle().
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+
+    // Create some Displays
+    DisplayParams params;
+
+    params.title = "D1";
+    auto d1 = engine.display.create(params);
+
+    params.title = "D2";
+    auto d2 = engine.display.create(params);
+
+    params.title = "D3";
+    auto d3 = engine.display.create(params);
+
+    // Check if we get the right Displays from their handles
+    assert(engine.display.displayFromHandle(d1.handle).title == "D1");
+    assert(engine.display.displayFromHandle(d2.handle).title == "D2");
+    assert(engine.display.displayFromHandle(d3.handle).title == "D3");
+
+    // Now try with an invalid handle
+    const invalidHandle = d3.handle + 999;
+    assert(engine.display.displayFromHandle(invalidHandle) is null);
 }
