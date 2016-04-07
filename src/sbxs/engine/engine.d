@@ -99,8 +99,11 @@ public struct Engine(BE)
         /// Handy alias to the Event type defined by the back end.
         public alias Event = backendType.events.Event;
 
-        /// Handy alias to the KeyCode enumeration defined by the back end.
+        /// Handy alias to the `KeyCode` enumeration defined by the back end.
         public alias KeyCode = backendType.events.KeyCode;
+
+        /// Handy alias to the `MouseButton` enumeration defined by the back end.
+        public alias MouseButton = backendType.events.MouseButton;
     }
 
     static if (hasMember!(backendType, "display"))
