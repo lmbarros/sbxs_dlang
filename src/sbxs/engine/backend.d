@@ -64,9 +64,9 @@ public class BackendInitializationException: BackendException
         size_t line = __LINE__, Throwable next = null) nothrow @safe
     {
         const msg = "Error while initializing the engine back end. "
-            ~ (additionalInfo.length > 0)
-                ? "Here's what the back end has to say about it: " ~ additionalInfo
-                : "The back end doesn't have anything else to say about it, sorry.";
+            ~ (additionalInfo.length > 0
+                ? ("Here's what the back end has to say about it: " ~ additionalInfo)
+                : "The back end doesn't have anything else to say about it, sorry.");
         super(msg, file, line, next);
     }
 }
@@ -94,9 +94,9 @@ public class DisplayCreationException: BackendException
         size_t line = __LINE__, Throwable next = null) nothrow @safe
     {
         const msg = "Error while creating a display. "
-            ~ (additionalInfo.length > 0)
-                ? "Here's what the back end has to say about it: " ~ additionalInfo
-                : "The back end doesn't have anything else to say about it, sorry.";
+            ~ (additionalInfo.length > 0
+                ? ("Here's what the back end has to say about it: " ~ additionalInfo)
+                : "The back end doesn't have anything else to say about it, sorry.");
         super(msg, file, line, next);
     }
 }
