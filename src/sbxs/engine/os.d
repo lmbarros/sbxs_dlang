@@ -71,3 +71,34 @@ package struct OSSubsystem(E)
         _engine.backend.os.sleep(timeInSecs);
     }
 }
+
+
+
+// -----------------------------------------------------------------------------
+// Unit tests
+// -----------------------------------------------------------------------------
+
+// Tests `getTime()` and `sleep()`.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+
+    engine.initialize();
+
+    assert(engine.os.getTime() == 0.0);
+    assert(engine.os.getTime() == 0.0);
+
+    engine.os.sleep(1.0);
+
+    assert(engine.os.getTime() == 1.0);
+
+    engine.os.sleep(1.0);
+    engine.os.sleep(10.0);
+    engine.os.sleep(1.0);
+
+    assert(engine.os.getTime() == 13.0);
+    assert(engine.os.getTime() == 13.0);
+}
