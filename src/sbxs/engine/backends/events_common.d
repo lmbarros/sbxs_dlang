@@ -23,9 +23,6 @@ package struct TickEventData
 /// Data associated with draw events.
 package struct DrawEventData
 {
-    /// Time elapsed since the last draw event, in seconds.
-    public double deltaTimeInSecs;
-
     /// Time elapsed since the program started to run, in seconds.
     public double drawingTimeInSecs;
 

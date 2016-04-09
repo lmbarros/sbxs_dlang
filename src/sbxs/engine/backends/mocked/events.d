@@ -81,8 +81,6 @@ package struct MockedEventsSubsystem(E)
      * This is part of the interface every back end is supposed to implement.
      *
      * Parameters:
-     *     deltaTimeInSecs = The time elapsed, since the last draw event,
-     *         in seconds.
      *     drawingTimeInSecs = The current drawing time, measured in seconds
      *         since the program started to run.
      *     timeSinceTickInSecs = The time elapsed since the lastest tick
@@ -90,12 +88,10 @@ package struct MockedEventsSubsystem(E)
      *
      * Returns: A draw event.
      */
-    public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
-        double timeSinceTickInSecs)
+    public Event makeDrawEvent(double drawingTimeInSecs, double timeSinceTickInSecs)
     {
         auto event = Event(_engine, EventType.draw);
 
-        event._drawEventData.deltaTimeInSecs = deltaTimeInSecs;
         event._drawEventData.drawingTimeInSecs = drawingTimeInSecs;
         event._drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
@@ -345,24 +341,18 @@ package struct MockedEventsSubsystem(E)
         }
 
         /**
-         * Returns the time elapsed, in seconds, since the previous event
-         * of the same type.
+         * Returns the time elapsed, in seconds, since the previous tick event.
          *
-         * Valid for: `tick`, `draw`.
+         * Valid for: `tick`
          */
         public @property double deltaTimeInSecs() const nothrow @nogc
         in
         {
-            assert(_type == EventType.tick || _type == EventType.draw);
+            assert(_type == EventType.tick);
         }
         body
         {
-            switch(_type)
-            {
-                case EventType.tick: return _tickEventData.deltaTimeInSecs;
-                case EventType.draw: return _drawEventData.deltaTimeInSecs;
-                default: assert(false, "Invalid event type");
-            }
+            return _tickEventData.deltaTimeInSecs;
         }
 
         /**
@@ -674,18 +664,16 @@ unittest
     events.initialize(&engine);
 
     // Call `makeDrawEvent()`, check if it works as expected
-    auto event = events.makeDrawEvent(0.1, 0.15, 0.2);
+    auto event = events.makeDrawEvent(0.15, 0.2);
 
     assert(event.type == EventType.draw);
-    assert(event.deltaTimeInSecs == 0.1);
     assert(event.drawingTimeInSecs == 0.15);
     assert(event.timeSinceTickInSecs == 0.2);
 
     // Again, again!
-    event = events.makeDrawEvent(0.3, 0.35, 0.4);
+    event = events.makeDrawEvent(0.35, 0.4);
 
     assert(event.type == EventType.draw);
-    assert(event.deltaTimeInSecs == 0.3);
     assert(event.drawingTimeInSecs == 0.35);
     assert(event.timeSinceTickInSecs == 0.4);
 }

@@ -174,6 +174,9 @@ package struct EventsSubsystem(E)
     /**
      * Calls the registered event handlers to handle a given event.
      *
+     * Returns: `true` if any of the registered evnt handlers returned `true`;
+     *     `false` otherwise.
+     *
      * Parameters:
      *     event = The event to be handled.
      */
@@ -247,10 +250,10 @@ package struct EventsSubsystem(E)
      * in response to draw events.
      *
      * Parameters:
-     *     deltaTimeInSecs = The tick time, in seconds, elapsed since the last
-     *         time this function was called.
+     *     timeSinceTickInSecs = The tick time, in seconds, elapsed since the
+     *         last tick event..
      */
-    public void draw(double deltaTimeInSecs)
+    public void draw(double timeSinceTickInSecs)
     {
         // TODO: Implement app states!
         // Return immediately if we are out of 'AppState's. (This happens when
@@ -258,16 +261,19 @@ package struct EventsSubsystem(E)
         //if (numAppStates == 0)
         //    return;
 
-        // Update the drawing time
-        _drawingTimeInSecs += deltaTimeInSecs;
-
-        const timeSinceTickInSecs = _drawingTimeInSecs - _tickTimeInSecs;
+        // Compute the new drawing time
+        const newDrawingTimeInSecs = _tickTimeInSecs + timeSinceTickInSecs;
+        const deltaDrawingTimeInSecs = newDrawingTimeInSecs - _drawingTimeInSecs;
+        assert(deltaDrawingTimeInSecs >= 0.0, "Drawing time cannot flow backward");
 
         // Call event handlers so that they can perform the drawing
         auto drawEvent = _engine.backend.events.makeDrawEvent(
-            deltaTimeInSecs, _drawingTimeInSecs, timeSinceTickInSecs);
+            newDrawingTimeInSecs, timeSinceTickInSecs);
 
         callEventHandlers(&drawEvent);
+
+        // Update the drawing time
+        _drawingTimeInSecs = newDrawingTimeInSecs;
 
         // And flip the buffers (if our back end supports this)
         static if (hasMember!(E, "display") && hasMember!(typeof(E.display), "swapAllBuffers"))
@@ -303,4 +309,498 @@ package struct EventsSubsystem(E)
 
     /// The registered event handlers.
     private EventHandlerEntry[] _handlers;
+}
+
+
+
+// -----------------------------------------------------------------------------
+// Unit tests
+// -----------------------------------------------------------------------------
+
+// Simple event handling test.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    // Add an event handler
+    bool handlerRan = false;
+
+    engine.events.addHandler(
+        delegate(Event* event) { handlerRan = true; return true; },
+        0);
+
+    assert(handlerRan == false); // sanity check
+
+    // Call handlers
+    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+    engine.events.callEventHandlers(&event);
+    assert(handlerRan == true);
+}
+
+
+// Checks if `callEventHandlers()` returns the expected value.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    // First, with a single event handler that returns `false`
+    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+
+    engine.events.addHandler((Event* event) => false, 0);
+    assert(engine.events.callEventHandlers(&event) == false);
+
+    // Then, with a second event handler, which returns `true`
+    engine.events.addHandler((Event* event) => true, 0);
+    assert(engine.events.callEventHandlers(&event) == true);
+}
+
+
+// Checks if multiple event handlers are called in the correct, priority-based order.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    bool firstRan = false;
+    bool secondRan = false;
+    bool thirdRan = false;
+
+    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+
+    // Add handler with priority 2; will hopefully be the second to be called
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            assert(firstRan == true);
+            assert(secondRan == false);
+            assert(thirdRan == false);
+            secondRan = true;
+
+            return false; // so that others have the chance to be called
+        },
+        2
+    );
+
+    // Add handler with priority 1; will hopefully be the first to be called
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            assert(firstRan == false);
+            assert(secondRan == false);
+            assert(thirdRan == false);
+            firstRan = true;
+
+            return false; // so that others have the chance to be called
+        },
+        1
+    );
+
+    // Add handler with priority 3; will hopefully be the third to be called
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            assert(firstRan == true);
+            assert(secondRan == true);
+            assert(thirdRan == false);
+            thirdRan = true;
+
+            return false; // so that others have the chance to be called
+        },
+        3
+    );
+
+    // Call handlers
+    engine.events.callEventHandlers(&event);
+
+    // Just in case, check all of them were called
+    assert(firstRan == true);
+    assert(secondRan == true);
+    assert(thirdRan == true);
+}
+
+
+// Checks if a handler returning `true` precludes other handlers to be called. Also
+// tests `removeHandler()`.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    bool firstRan = false;
+    bool secondRan = false;
+
+    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+
+    // First handler, returns `true`.
+    auto firstHandler = delegate(Event* event)
+                        {
+                            firstRan = true;
+                            return true; // preclude subsequent handlers to run
+                        };
+
+    engine.events.addHandler(firstHandler, 1);
+
+    // Second handler, also returns `true` (but this doesn't matter)
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            secondRan = true;
+            return true;
+        },
+        2
+    );
+
+    // Call handlers, just the first one shall be actually called
+    engine.events.callEventHandlers(&event);
+
+    assert(firstRan == true);
+    assert(secondRan == false);
+
+    // Remove the first handler, call handlers again
+    assert(engine.events.removeHandler(firstHandler) == true);
+
+    engine.events.callEventHandlers(&event);
+
+    assert(secondRan == true);
+}
+
+
+// Tests `tick()` generates a Tick event
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    int numTicks = 0;
+
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            if (event.type == EventType.tick)
+                ++numTicks;
+
+            return false;
+        },
+        1
+    );
+
+    // Initially, no ticks
+    assert(numTicks == 0);
+
+    // Call `tick()`, check if our handler was called as expected
+    engine.events.tick(0.1);
+    assert(numTicks == 1);
+
+    engine.events.tick(0.1);
+    engine.events.tick(0.1);
+    engine.events.tick(0.1);
+    assert(numTicks == 4);
+}
+
+
+// Tests `tick()` calls the event handlers for the enqueued input events.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+    alias KeyCode = typeof(engine).KeyCode;
+
+    int numTicks = 0;
+    int numKeyUps = 0;
+    int numWheelUps = 0;
+
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            switch(event.type)
+            {
+                case EventType.tick: ++numTicks; break;
+                case EventType.keyUp: ++numKeyUps; break;
+                case EventType.mouseWheelUp: ++numWheelUps; break;
+                default: break;
+            }
+
+            return false;
+        },
+        1
+    );
+
+    // Initially, no events
+    assert(numTicks == 0);
+    assert(numKeyUps == 0);
+    assert(numWheelUps == 0);
+
+    // Call `tick()`, without having enqueued any other event
+    engine.events.tick(0.1);
+    assert(numTicks == 1);
+    assert(numWheelUps == 0);
+    assert(numKeyUps == 0);
+
+    // Simulate some input events, call `tick()` again
+    enum fakeDisplayHandle = 1;
+
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+        KeyCode.a, fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+        KeyCode.b, fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+        fakeDisplayHandle);
+
+    engine.events.tick(0.1);
+    assert(numTicks == 2);
+    assert(numWheelUps == 1);
+    assert(numKeyUps == 2);
+
+    // Agaaaain, agaaaain
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+        fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+        fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+        KeyCode.a, fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+        fakeDisplayHandle);
+    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+        KeyCode.b, fakeDisplayHandle);
+
+    engine.events.tick(0.1);
+    assert(numTicks == 3);
+    assert(numWheelUps == 4);
+    assert(numKeyUps == 4);
+
+    // Here we are ready with the test itself. Let's just force the execution
+    // of the event handler once more, with an event type different than those
+    // we are explicitly handling. Why? Just to exercise that `default`
+    // `switch` case in the evenr handler, in order to get 100% coverage.
+    engine.events.draw(0.1);
+}
+
+
+// Tests if `tick()` makes the time pass.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    int numTicks = 0;
+
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            if (numTicks == 0)
+                assert(event.tickTimeInSecs == 1.0);
+            else if (numTicks == 1)
+                assert(event.tickTimeInSecs == 2.0);
+            else if (numTicks == 2)
+                assert(event.tickTimeInSecs == 5.0);
+            else if (numTicks == 3)
+                assert(event.tickTimeInSecs == 7.0);
+
+            ++numTicks;
+            return false;
+        },
+        1
+    );
+
+    // Call `tick()`, passing delta times of 1, 1, 3, and 2 seconds
+    engine.events.tick(1.0);
+    engine.events.tick(1.0);
+    engine.events.tick(3.0);
+    engine.events.tick(2.0);
+}
+
+
+// Tests if `draw()` generates calls Draw event handlers.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    int numDraws = 0;
+
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            if (event.type == EventType.draw)
+                ++numDraws;
+
+            return false;
+        },
+        1
+    );
+
+    // Initially, no draws
+    assert(numDraws == 0);
+
+    // Call `draw()`, check if our handler was called as expected
+    engine.events.draw(0.1);
+    assert(numDraws == 1);
+
+    engine.events.draw(0.1);
+    engine.events.draw(0.1);
+    engine.events.draw(0.1);
+    assert(numDraws == 4);
+}
+
+
+// Tests if `draw()` advances the time as expected.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    alias Event = typeof(engine).Event;
+
+    int numDraws = 0;
+
+    engine.events.addHandler(
+        delegate(Event* event)
+        {
+            if (event.type != EventType.draw)
+                return false;
+
+            if (numDraws == 0)
+            {
+                assert(event.drawingTimeInSecs == 2.0);
+                assert(event.timeSinceTickInSecs == 1.0);
+            }
+            else if (numDraws == 1)
+            {
+                assert(event.drawingTimeInSecs == 4.0);
+                assert(event.timeSinceTickInSecs == 3.0);
+            }
+            else if (numDraws == 2)
+            {
+                assert(event.drawingTimeInSecs == 6.0);
+                assert(event.timeSinceTickInSecs == 0.0);
+            }
+
+            ++numDraws;
+
+            return false;
+        },
+        1
+    );
+
+    // Call `draw()` and `tick()`, passing interesting delta times, as in the
+    // diagram below. An "o" is a call to either `draw()` or `tick()`. Double
+    // lines ("===") indicate where the tick time is advancing in response to a
+    // call to `tick()`, or where the drawing time is advancing in response to
+    // a call to `draw()`. A single line ("---") shows where the drawing time
+    // advanced in reponse to a `tick()` call (ticks always resinchronize the
+    // tick and draw times). An "O" marks a point just after `tick()` or
+    // `draw()` was called.
+    //
+    //        0   1   2   3   4   5   6
+    //        |   |   |   |   |   |   |
+    // tick   +===O===+===+===+===+===O
+    //        |   |   |   |   |   |   |
+    // draw   +---+===O===+===O---+---O
+    //        |   |   |   |   |   |   |
+
+    assert(numDraws == 0);
+
+    engine.events.tick(1.0);
+    engine.events.draw(1.0);
+    assert(numDraws == 1);
+
+    engine.events.draw(3.0);
+    assert(numDraws == 2);
+
+    engine.events.tick(5.0);
+    engine.events.draw(0.0);
+    assert(numDraws == 3);
+}
+
+
+// Tests if `draw()` swaps buffers for all Displays.
+unittest
+{
+    import sbxs.engine;
+    import sbxs.engine.backends.mocked;
+
+    Engine!MockedBackend engine;
+    engine.initialize();
+
+    // Create two Displays
+    DisplayParams params;
+
+    auto display1 = engine.display.create(params);
+    auto display2 = engine.display.create(params);
+
+    assert(display1.swapBuffersCount == 0);
+    assert(display2.swapBuffersCount == 0);
+
+    // Check if `draw()` swaps their buffers
+    engine.events.draw(0.1);
+
+    assert(display1.swapBuffersCount == 1);
+    assert(display2.swapBuffersCount == 1);
+
+    engine.events.draw(0.1);
+    engine.events.draw(0.1);
+
+    assert(display1.swapBuffersCount == 3);
+    assert(display2.swapBuffersCount == 3);
+
+    // Create a third Display
+    auto display3 = engine.display.create(params);
+
+    assert(display1.swapBuffersCount == 3);
+    assert(display2.swapBuffersCount == 3);
+    assert(display3.swapBuffersCount == 0);
+
+    // Draw more
+    engine.events.draw(0.1);
+    engine.events.draw(0.1);
+    engine.events.draw(0.1);
+
+    assert(display1.swapBuffersCount == 6);
+    assert(display2.swapBuffersCount == 6);
+    assert(display3.swapBuffersCount == 3);
 }
