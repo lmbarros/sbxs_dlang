@@ -22,7 +22,11 @@ local filesSBXS = { "../src/sbxs/**.d" }
 
 -- SBXS back ends source files.
 local filesSBXSBackends = { "../src/sbxs/engine/backends/**.d" }
-local filesSBXSMockedBackend = { "../src/sbxs/engine/backends/mocked/**.d" }
+
+local filesSBXSMockedBackend = {
+    "../src/sbxs/engine/backends/mocked/**.d",
+    "../src/sbxs/engine/backends/*_common.d",
+}
 
 
 -- Files to be compiled in for SDL 2 support.

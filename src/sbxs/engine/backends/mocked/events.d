@@ -9,31 +9,8 @@
 module sbxs.engine.backends.mocked.events;
 
 import sbxs.engine;
+import sbxs.engine.backends.events_common;
 
-
-/// Data associated with tick events.
-private struct TickEventData
-{
-    /// Time elapsed since the last tick event, in seconds.
-    public double deltaTimeInSecs;
-
-    /// Time elapsed since the program started to run, in seconds.
-    public double tickTimeInSecs;
-}
-
-
-/// Data associated with draw events.
-private struct DrawEventData
-{
-    /// Time elapsed since the last draw event, in seconds.
-    public double deltaTimeInSecs;
-
-    /// Time elapsed since the program started to run, in seconds.
-    public double drawingTimeInSecs;
-
-    /// Time elapsed since the last tick event, in seconds.
-    public double timeSinceTickInSecs;
-}
 
 
 /**
