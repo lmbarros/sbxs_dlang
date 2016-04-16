@@ -1,5 +1,5 @@
 /**
- * Allegro 5 back end: Display subsystem.
+ * Engine display subsystem based on Allegro 5.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -13,6 +13,7 @@ version(HasAllegro5)
     import derelict.allegro5.allegro;
     import derelict.opengl3.gl3;
     import sbxs.engine;
+
 
     /**
      * Allegro 5 implementation of a Display.
@@ -72,16 +73,15 @@ version(HasAllegro5)
             // Allegro creates new Displays as the current one; let the
             // internal state reflect this.
             _currentDisplay = _display;
+
+            // Now that we have a context, we can reload the OpenGL bindings, and
+            // we'll get all the OpenGL 3+ stuff
+            DerelictGL3.reload();
         }
 
         /// Destroys the Display.
         package(sbxs.engine) void destroy() nothrow @nogc
         {
-            // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
-            // TODO: Will need to call `al_unregister_event_source`. How
-            //       to deal with Displays and event sources? (This a point in
-            //       which two different subsystems will interact.)
             al_destroy_display(_display);
         }
 
@@ -161,32 +161,18 @@ version(HasAllegro5)
      * Parameters:
      *     E = The type of the engine using this subsystem back end.
      */
-    package struct Allegro5DisplaySubsystem(E)
+    public struct Allegro5DisplaySubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
-
-        /**
-         * Initializes the subsystem.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void initialize(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
-        {
-            _engine = engine;
-        }
-
-        /// Shuts the subsystem down.
-        public void shutdown() nothrow @nogc { }
+        mixin DisplayCommon!E;
 
         /// The type used as Display.
         public alias Display = Allegro5Display;
+
+        /// Initializes the OpenGL bindings.
+        public void initializeMore()
+        {
+            DerelictGL3.load();
+        }
     }
 
 } // version HasAllegro5

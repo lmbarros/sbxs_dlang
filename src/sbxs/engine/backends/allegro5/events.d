@@ -1,5 +1,5 @@
 /**
- * Allegro 5 back end: Events subsystem.
+ * Engine events subsystem based on Allegro 5.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -16,31 +16,29 @@ version(HasAllegro5)
 
 
     /**
-     * Events engine subsystem back end, based on the Allegro 5 library.
+     * Engine events subsystem based on the Allegro 5 library.
      *
      * Parameters:
-     *     E = The type of the engine using this subsystem back end.
+     *     E = The type of the engine using this subsystem.
      */
-    package struct Allegro5EventsSubsystem(E)
+    public struct Allegro5EventsSubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
+        mixin EventsCommon!E;
 
         /**
-         * Initializes the subsystem.
+         * Performs any further, back end-specific initialization of the
+         * subsystem.
          *
-         * Parameters:
-         *     engine = The engine using this subsystem.
+         * This is called from `EventsCommon`, in a compile-time version of the
+         * factory method design pattern.
          */
-        public void initialize(E* engine)
+        public void initializeMore()
         in
         {
-            assert(engine !is null);
+            assert(_engine !is null);
         }
         body
         {
-            _engine = engine;
-
             // Initialize the required Allegro subsystems
             if (!al_install_keyboard())
             {
@@ -101,35 +99,11 @@ version(HasAllegro5)
             al_register_event_source(_eventQueue, &_userEventSource);
             scope(failure)
                 al_unregister_event_source(_eventQueue, &_userEventSource);
-
-            // Allocate memory for `_tickEventData`
-            import core.stdc.stdlib: malloc;
-            _tickEventData = cast(TickEventData*)malloc(TickEventData.sizeof);
-            if (_tickEventData is null)
-            {
-                throw new BackendInitializationException(
-                    "Error allocating memory for tick event data.");
-            }
-
-            // Allocate memory for `_drawEventData`
-            _drawEventData = cast(DrawEventData*)malloc(DrawEventData.sizeof);
-            if (_drawEventData is null)
-            {
-                throw new BackendInitializationException(
-                    "Error allocating memory for draw event data.");
-            }
         }
 
         /// Shuts the subsystem down.
         public void shutdown()
         {
-            // Free the `_tickEventData` memory
-            import core.stdc.stdlib: free;
-            free(_tickEventData);
-
-            // Free the `_drawEventData` memory
-            free(_drawEventData);
-
             // Remove the event sources
             al_unregister_event_source(_eventQueue, al_get_joystick_event_source());
             al_unregister_event_source(_eventQueue, al_get_mouse_event_source());
@@ -180,7 +154,7 @@ version(HasAllegro5)
         {
             _tickEventData.deltaTimeInSecs = deltaTimeInSecs;
             _tickEventData.tickTimeInSecs = tickTimeInSecs;
-            auto tickEvent = makeAllegroEvent(userEventTypeTick, _tickEventData);
+            auto tickEvent = makeAllegroEvent(userEventTypeTick, &_tickEventData);
             const success = al_emit_user_event(&_userEventSource, &tickEvent, null);
             if (!success)
             {
@@ -192,8 +166,6 @@ version(HasAllegro5)
          * Creates and returns a draw event.
          *
          * Parameters:
-         *     deltaTimeInSecs = The time elapsed, since the last draw event,
-         *         in seconds.
          *     drawingTimeInSecs = The current drawing time, measured in seconds
          *         since the program started to run.
          *     timeSinceTickInSecs = The time elapsed since the lastest tick
@@ -201,14 +173,12 @@ version(HasAllegro5)
          *
          * Returns: A draw event.
          */
-        public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
-            double timeSinceTickInSecs)
+        public Event makeDrawEvent(double drawingTimeInSecs, double timeSinceTickInSecs)
         {
-            _drawEventData.deltaTimeInSecs = deltaTimeInSecs;
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeAllegroEvent(userEventTypeDraw, _drawEventData), _engine);
+            return Event(makeAllegroEvent(userEventTypeDraw, &_drawEventData), _engine);
         }
 
         /**
@@ -229,14 +199,14 @@ version(HasAllegro5)
         body
         {
             ALLEGRO_EVENT allegroEvent;
-            const gotEvent = al_get_next_event(_eventQueue, &allegroEvent) == true;
+            const gotEvent = al_get_next_event(_eventQueue, &allegroEvent);
             if (gotEvent)
                 *event = Event(allegroEvent, _engine);
             return gotEvent;
         }
 
         /**
-         * An event.
+         * An event backed by Allegro 5.
          *
          * Wraps an `ALLEGRO_EVENT`, providing the interface expected by the
          * engine.
@@ -335,34 +305,17 @@ version(HasAllegro5)
              * Returns the time elapsed, in seconds, since the previous event
              * of the same type.
              *
-             * Valid for: `tick`, `draw`.
+             * Valid for: `tick`.
              */
             public @property double deltaTimeInSecs() const nothrow @nogc
             in
             {
-                assert(_event.type == userEventTypeTick
-                    || _event.type == userEventTypeDraw);
+                assert(_event.type == userEventTypeTick);
             }
             body
             {
-                switch(_event.type)
-                {
-                    case userEventTypeTick:
-                    {
-                        const pTED = cast(TickEventData*)_event.user.data1;
-                        return pTED.deltaTimeInSecs;
-                    }
-
-                    case userEventTypeDraw:
-                    {
-                        assert(_event.type == userEventTypeDraw);
-                        const pDED = cast(DrawEventData*)_event.user.data1;
-                        return pDED.deltaTimeInSecs;
-                    }
-
-                    default:
-                        assert(false, "Invalid event type");
-                }
+                const pTED = cast(TickEventData*)_event.user.data1;
+                return pTED.deltaTimeInSecs;
             }
 
             /**
@@ -413,7 +366,7 @@ version(HasAllegro5)
                 return cast(KeyCode)(_event.keyboard.keycode);
             }
 
-            static if (hasMember!(typeof(E.backend), "display"))
+            static if (hasMember!(E, "display"))
             {
                 /**
                  * Returns the Display which had the focus when the event was
@@ -426,7 +379,7 @@ version(HasAllegro5)
                  * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayResize`,
                  * `displayExpose`.
                  */
-                public @property inout(E.backendType.Display*) display() inout nothrow @nogc
+                public @property inout(E.Display*) display() inout nothrow @nogc
                 in
                 {
                     assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
@@ -481,8 +434,7 @@ version(HasAllegro5)
                  * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayResize`,
                  * `displayExpose`.
                  */
-                public @property E.backendType.Display.handleType
-                    displayHandle() const nothrow @nogc
+                public @property E.Display.handleType displayHandle() const nothrow @nogc
                 in
                 {
                     assert(_event.type == ALLEGRO_EVENT_KEY_DOWN
@@ -495,7 +447,7 @@ version(HasAllegro5)
                 }
                 body
                 {
-                    alias handleType = E.backendType.Display.handleType;
+                    alias handleType = E.Display.handleType;
 
                     switch (_event.type)
                     {
@@ -576,24 +528,19 @@ version(HasAllegro5)
         }
 
         /**
-         * Data passed to tick events. Since at any moment we have at
-         * most one single tick event in the SDL event queue, we can use
-         * this single instance.
+         * Data passed to tick events.
          *
-         * BTW, this a pointer pointing to `malloc`ed memory (instead of
-         * a regular member) just because I don't want to have this data
-         * being handled by the garbage collector. My fear is that some
-         * future implementation of the garbage collector may move data
-         * around the memory (and SDL-managed structures would still
-         * point to the old, noe incorrect address).
+         * Since at any moment we have at most one single tick event in
+         * the SDL event queue, we can use this single instance.
          */
-        private TickEventData* _tickEventData;
+        private TickEventData _tickEventData;
 
         /**
-         * Data passed to draw events. Everything said about `_tickEventData`
-         * holds here, too.
+         * Data passed to draw events.
+         *
+         * What was said about `_tickEventData` holds here, too.
          */
-        private DrawEventData* _drawEventData;
+        private DrawEventData _drawEventData;
 
         /// The one and only event queue used by the Engine.
         private ALLEGRO_EVENT_QUEUE* _eventQueue;
@@ -642,9 +589,9 @@ version(HasAllegro5)
             _5 = ALLEGRO_KEY_5,  _6 = ALLEGRO_KEY_6,  _7 = ALLEGRO_KEY_7,  _8 = ALLEGRO_KEY_8,
             _9 = ALLEGRO_KEY_9,  _0 = ALLEGRO_KEY_0,
 
-            f1  = ALLEGRO_KEY_F1,  f2  = ALLEGRO_KEY_F2,    f3  = ALLEGRO_KEY_F3,
-            f4  = ALLEGRO_KEY_F4,  f5  = ALLEGRO_KEY_F5,    f6  = ALLEGRO_KEY_F6,
-            f7  = ALLEGRO_KEY_F7,  f8  = ALLEGRO_KEY_F8,    f9  = ALLEGRO_KEY_F9,
+            f1  = ALLEGRO_KEY_F1,   f2  = ALLEGRO_KEY_F2,   f3  = ALLEGRO_KEY_F3,
+            f4  = ALLEGRO_KEY_F4,   f5  = ALLEGRO_KEY_F5,   f6  = ALLEGRO_KEY_F6,
+            f7  = ALLEGRO_KEY_F7,   f8  = ALLEGRO_KEY_F8,   f9  = ALLEGRO_KEY_F9,
             f10 = ALLEGRO_KEY_F10,  f11 = ALLEGRO_KEY_F11,  f12 = ALLEGRO_KEY_F12,
 
             left = ALLEGRO_KEY_LEFT,  right = ALLEGRO_KEY_RIGHT,

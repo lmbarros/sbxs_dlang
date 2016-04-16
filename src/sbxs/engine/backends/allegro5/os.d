@@ -1,5 +1,5 @@
 /**
- * Allegro 5 back end: Operating System subsystem.
+ * Operating System events subsystem based on Allegro 5.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -13,34 +13,16 @@ import derelict.allegro5.allegro;
 version(HasAllegro5)
 {
     /**
-     * Operating System engine subsystem back end, based on the Allegro 5 library.
+     * Operating System events subsystem based on the Allegro 5 library.
      *
      * Parameters:
-     *     E = The type of the engine using this subsystem back end.
+     *     E = The type of the engine using this subsystem.
      */
-    package struct Allegro5OSSubsystem(E)
+    public struct Allegro5OSSubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
+        import sbxs.engine.os: OSCommon;
 
-        /**
-         * Initializes the subsystem.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void initialize(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
-        {
-            _engine = engine;
-        }
-
-        /// Shuts the subsystem down.
-        public void shutdown() { }
+        mixin OSCommon!E;
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
         public double getTime()
@@ -48,7 +30,7 @@ version(HasAllegro5)
             return al_get_time();
         }
 
-        /// Sleeps the current thread for a given number of seconds.
+        /// Sleeps the calling thread for a given number of seconds.
         public void sleep(double timeInSecs)
         {
             al_rest(timeInSecs);

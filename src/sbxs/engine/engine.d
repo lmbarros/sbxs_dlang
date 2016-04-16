@@ -1,5 +1,6 @@
 /**
- * The engine (as in "game engine", though this may not qualify as a real one).
+ * The engine, or maybe just the pieces to assemble your own, or something
+ * like that.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -12,51 +13,32 @@
 module sbxs.engine.engine;
 
 import std.traits: hasMember;
-import sbxs.engine.backend;
-import sbxs.engine.os;
-import sbxs.engine.display;
-import sbxs.engine.events;
 
 
 /**
- * A game engine (if I can call it so; sometimes people are nitty with
- * definitions like this).
+ * Common implementation of an Engine.
+ *
+ * Mix this in in your own implementation, implement the required methods (and
+ * the desired optional ones) and you should obtain a working subsystem.
  *
  * Unlike many implementations of game engines we have nowadays, this
- * is not a singleton. I don't know why one would want to have multiple
- * instances of an `Engine`, but I am not here to prohibit this.
+ * is not meant to be a singleton. I don't know why one would want to have
+ * multiple instances of an `Engine`, but I am not here to prohibit this.
  *
  * Now, depending on the back end used, it may not be legal to create
  * multiple instances of the engine. In this case, feel free to
- * encapsulate and instance of `Engine` into a singleton. Likewise, if
- * you want the convenience of global access to the engine, go ahead and
- * create a singleton-like encapsulation for your project.
+ * encapsulate your engine instance in a singleton. Likewise, if you want
+ * the convenience of global access to the engine, go ahead and create a
+ * singleton-like encapsulation for your project.
  *
  * Concerning thread safety: it's probably a good idea to make all calls to
- * `Engine` methods from the same thread. Some things may work when called
+ * engine methods from the same thread. Some things may work when called
  * from other threads, but better safe than sorry.
- *
- * Parameters:
- *     BE = The back end providing the lower-level stuff to the engine.
  */
-public struct Engine(BE)
+mixin template EngineCommon()
 {
-    import sbxs.containers.nc_array: NCArray;
-
-    // `Engine`s cannot be copied.
+    // Engine cannot be copied.
     @disable this(this);
-
-    /// The type used as back end.
-    public alias backendType = BE;
-
-    /// The type of this engine.
-    private alias engineType = Engine!backendType;
-
-    /// The back end.
-    package backendType _backend;
-
-    /// Ditto
-    package @property inout(backendType*) backend() inout { return &_backend; }
 
     /**
      * Initializes the engine; this must be called before using it.
@@ -65,10 +47,16 @@ public struct Engine(BE)
      */
     public void initialize()
     {
-        _backend.initialize(&this);
-        os.initialize(&this);
-        events.initialize(&this);
-        display.initialize(&this);
+        mixin(smCallIfMemberExists("initializeMore"));
+
+        static if (engineHasMember!(typeof(this), "os", "initialize"))
+            os.initialize(&this);
+
+        static if (engineHasMember!(typeof(this), "events", "initialize"))
+            events.initialize(&this);
+
+        static if (engineHasMember!(typeof(this), "display", "initialize"))
+            display.initialize(&this);
     }
 
     /**
@@ -82,41 +70,44 @@ public struct Engine(BE)
      */
     public void shutdown()
     {
-        display.shutdown();
-        events.shutdown();
-        os.shutdown();
-        _backend.shutdown();
+        static if (engineHasMember!(typeof(this), "display", "shutdown"))
+            display.shutdown();
+
+        static if (engineHasMember!(typeof(this), "events", "shutdown"))
+            events.shutdown();
+
+        static if (engineHasMember!(typeof(this), "os", "shutdown"))
+            os.shutdown();
     }
 
-    /// The Operating System subsystem.
-    public OSSubsystem!engineType os;
-
-    static if (hasMember!(backendType, "events"))
+    static if (engineHasMember!(typeof(this), "display", "Display"))
     {
-        /// The Events subsystem.
-        public EventsSubsystem!engineType events;
-
-        /// Handy alias to the Event type defined by the back end.
-        public alias Event = backendType.events.Event;
-
-        /// Handy alias to the `KeyCode` enumeration defined by the back end.
-        public alias KeyCode = backendType.events.KeyCode;
-
-        /// Handy alias to the `MouseButton` enumeration defined by the back end.
-        public alias MouseButton = backendType.events.MouseButton;
-    }
-
-    static if (hasMember!(backendType, "display"))
-    {
-        /// The Display subsystem.
-        public DisplaySubsystem!engineType display;
-
         /// Handy alias to the Display type defined by the back end.
-        public alias Display = backendType.display.Display;
+        public alias Display = display.Display;
+    }
+
+    static if (engineHasMember!(typeof(this), "events", "Event"))
+    {
+        /// Handy alias to the Event type defined by the back end.
+        public alias Event = events.Event;
+    }
+
+    static if (engineHasMember!(typeof(this), "events", "KeyCode"))
+    {
+        /// Handy alias to the `KeyCode` enumeration defined by the back end.
+        public alias KeyCode = events.KeyCode;
+    }
+
+    static if (engineHasMember!(typeof(this), "events", "MouseButton"))
+    {
+        /// Handy alias to the `MouseButton` enumeration defined by the back end.
+        public alias MouseButton = events.MouseButton;
     }
 }
 
 
+
+/+
 
 // -----------------------------------------------------------------------------
 // Unit tests
@@ -143,3 +134,5 @@ unittest
     assert(engine.backend.events.isInited == true);
     assert(engine.backend.os.isInited == true);
 }
+
++/

@@ -1,5 +1,5 @@
 /**
- * An engine back end based on the Allegro 5 library (and OpenGL).
+ * Engine back end parts based on the Allegro 5 library (and OpenGL).
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -10,7 +10,16 @@
 
 module sbxs.engine.backends.allegro5;
 
-public import sbxs.engine.backends.allegro5.backend;
 public import sbxs.engine.backends.allegro5.os;
 public import sbxs.engine.backends.allegro5.display;
+public import sbxs.engine.backends.allegro5.engine;
 public import sbxs.engine.backends.allegro5.events;
+
+
+// Just a dummy test, to make this otherwise code-less file appear as 100%
+// covered. I don't want "false negatives" taking my attention instead of real
+// issues.
+unittest
+{
+    assert(true);
+}

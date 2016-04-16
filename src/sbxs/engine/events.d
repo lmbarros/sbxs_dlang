@@ -8,8 +8,6 @@
 
 module sbxs.engine.events;
 
-import std.traits: hasMember;
-
 
 /// The possible types of events.
 public enum EventType
@@ -59,7 +57,10 @@ public enum EventType
 
 
 /**
- * Implementation of the Events engine subsystem.
+ * Common implementation of the Events engine subsystem.
+ *
+ * Mix this in your own implementation, implement the required methods (and the
+ * desired optional ones) and you should obtain a working subsystem.
  *
  * This provides services like detecting when input events happen and make them
  * available in a queue-like interface.
@@ -67,11 +68,8 @@ public enum EventType
  * Parameters:
  *     E = The type of the engine being used.
  */
-package struct EventsSubsystem(E)
+public mixin template EventsCommon(E)
 {
-    /// An Event, as defined by the back end in use.
-    private alias Event = E.backendType.events.Event;
-
     /**
      * A low-level event handler function.
      *
@@ -110,10 +108,14 @@ package struct EventsSubsystem(E)
     body
     {
         _engine = engine;
+        mixin(smCallIfMemberExists("initializeMore"));
     }
 
     /// Shuts the subsystem down.
-    void shutdown() { }
+    void shutdown()
+    {
+        mixin(smCallIfMemberExists("shutdownMore"));
+    }
 
     /**
      * Register a given `EventHandler` with the Event subsystem, with a
@@ -220,12 +222,12 @@ package struct EventsSubsystem(E)
         _drawingTimeInSecs = _tickTimeInSecs;
 
         // Put a tick event on the event queue
-        _engine.backend.events.enqueueTickEvent(deltaTimeInSecs, _tickTimeInSecs);
+        _engine.events.enqueueTickEvent(deltaTimeInSecs, _tickTimeInSecs);
 
         // Handle events
         auto event = Event(_engine);
 
-        while (_engine.backend.events.dequeueEvent(&event))
+        while (_engine.events.dequeueEvent(&event))
         {
             // App state events are handled right here by the engine
             // itself, not by user-supplied handlers
@@ -233,7 +235,7 @@ package struct EventsSubsystem(E)
             {
                 // TODO: Implement app states!
                 // App State events are handled here
-                // handleAppStateEvent(event); // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                // handleAppStateEvent(event);
             }
             else
             {
@@ -267,7 +269,7 @@ package struct EventsSubsystem(E)
         assert(deltaDrawingTimeInSecs >= 0.0, "Drawing time cannot flow backward");
 
         // Call event handlers so that they can perform the drawing
-        auto drawEvent = _engine.backend.events.makeDrawEvent(
+        auto drawEvent = _engine.events.makeDrawEvent(
             newDrawingTimeInSecs, timeSinceTickInSecs);
 
         callEventHandlers(&drawEvent);
@@ -276,10 +278,8 @@ package struct EventsSubsystem(E)
         _drawingTimeInSecs = newDrawingTimeInSecs;
 
         // And flip the buffers (if our back end supports this)
-        static if (hasMember!(E, "display") && hasMember!(typeof(E.display), "swapAllBuffers"))
-        {
+        static if (engineHasMember!(E, "display", "swapAllBuffers"))
             _engine.display.swapAllBuffers();
-        }
     }
 
     /**
@@ -311,6 +311,7 @@ package struct EventsSubsystem(E)
     private EventHandlerEntry[] _handlers;
 }
 
+/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 
 // -----------------------------------------------------------------------------
@@ -804,3 +805,4 @@ unittest
     assert(display2.swapBuffersCount == 6);
     assert(display3.swapBuffersCount == 3);
 }
++/

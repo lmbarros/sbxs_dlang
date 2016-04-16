@@ -8,6 +8,7 @@
 
 module sbxs.engine.backends.sdl2.backend;
 
+/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 version(HasSDL2)
 {
     import derelict.sdl2.sdl;
@@ -78,3 +79,4 @@ version(HasSDL2)
         public alias Display = typeof(display).Display;
     }
 }
++/

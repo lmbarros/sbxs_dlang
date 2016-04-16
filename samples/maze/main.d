@@ -14,14 +14,16 @@ import sbxs.engine;
 version(UseSDL2)
 {
     import sbxs.engine.backends.sdl2;
-    alias Engine_t = Engine!SDL2Backend;
+
+    alias Engine = SDL2Engine;
     enum windowTitle = "SDL 2 Maze";
     enum helloMessage = "Hello from the SDL-backed Maze example!";
 }
 else version(UseAllegro5)
 {
     import sbxs.engine.backends.allegro5;
-    alias Engine_t = Engine!Allegro5Backend;
+
+    alias Engine = Allegro5Engine;
     enum windowTitle = "Allegro 5 Maze";
     enum helloMessage = "Hello from the Allegro-backed Maze example!";
 }
@@ -36,7 +38,7 @@ void main()
 {
     import std.stdio;
 
-    Engine_t engine;
+    Engine engine;
     engine.initialize();
     scope(exit)
         engine.shutdown();
@@ -44,13 +46,13 @@ void main()
     writeln(helloMessage);
 
     engine.events.addHandler(
-        delegate(Engine_t.Event* event)
+        delegate(Engine.Event* event)
         {
             import core.stdc.stdlib: exit;
             if (event.type == EventType.keyUp)
             {
                 writefln("KEY UP! (%s - %s)", event.display, event.display.title);
-                if (event.keyCode == Engine_t.KeyCode.escape)
+                if (event.keyCode == Engine.KeyCode.escape)
                 {
                     writefln("PRESSED ESC!");
                     exit(0);

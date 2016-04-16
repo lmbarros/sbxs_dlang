@@ -12,8 +12,6 @@
 
 module sbxs.engine.display;
 
-import std.traits;
-
 
 /**
  * Modes into which a Display can be created, with regards to "window" versus
@@ -110,20 +108,23 @@ public struct DisplayParams
 
 
 /**
- * Implementation of the Display engine subsystem.
+ * Common implementation of the Display engine subsystem.
  *
- * This provides places where we can draw things to.
+ * Mix this in your own implementation, implement the required methods (and the
+ * desired optional ones) and you should obtain a working subsystem.
+ *
+ * Provides services related to Displays, which are places where things can be
+ * drawn (like windows or "full screens").
  *
  * Parameters:
  *     E = The type of the engine being used.
  */
-package struct DisplaySubsystem(E)
+public mixin template DisplayCommon(E)
 {
+    import std.traits: hasMember;
+
     /// The engine being used.
     private E* _engine;
-
-    /// The type representing a Display, as defined in the back end.
-    public alias Display = E.backendType.display.Display;
 
     /**
      * Initializes the subsystem.
@@ -139,6 +140,7 @@ package struct DisplaySubsystem(E)
     body
     {
         _engine = engine;
+        mixin(smCallIfMemberExists("initializeMore"));
     }
 
     /// Shuts the subsystem down.
@@ -146,6 +148,8 @@ package struct DisplaySubsystem(E)
     {
         foreach (ref display; _displaysByHandle)
             display.destroy();
+
+        mixin(smCallIfMemberExists("shutdownMore"));
     }
 
     /**
@@ -190,6 +194,7 @@ package struct DisplaySubsystem(E)
 }
 
 
+/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 // -----------------------------------------------------------------------------
 // Unit tests
@@ -298,3 +303,4 @@ unittest
     const invalidHandle = d3.handle + 999;
     assert(engine.display.displayFromHandle(invalidHandle) is null);
 }
++/

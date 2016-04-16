@@ -8,9 +8,10 @@
 
 module sbxs.engine.backends.mocked.events;
 
+/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 import sbxs.engine;
 import sbxs.engine.backends.events_common;
-
 
 
 /**
@@ -788,3 +789,6 @@ unittest
     assert(event.displayHandle == display.handle);
     assert(event.display.title == "Aigale!");
 }
+
++/
+

@@ -1,5 +1,5 @@
 /**
- * Includes everything from Engine, with a single, handy `import`.
+ * Includes all public stuff from Engine, with a single, handy `import`.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -13,6 +13,7 @@ public import sbxs.engine.display;
 public import sbxs.engine.engine;
 public import sbxs.engine.events;
 public import sbxs.engine.os;
+public import sbxs.engine.dbi;
 
 
 // Just a dummy test, to make this otherwise code-less file appear as 100%
