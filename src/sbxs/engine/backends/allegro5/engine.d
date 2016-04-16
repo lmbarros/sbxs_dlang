@@ -28,17 +28,7 @@ public void initializeAllegro5(E)()
     import derelict.opengl3.gl3;
 
     // General back end initialization
-    version(linux)
-    {
-        // TODO: Make this work portably (and by "portably", I mean "even
-        //       across different Linux distros"). This is just a hack I
-        //       did to make it work on my system.
-        DerelictAllegro5.load("liballegro.so.5.0");
-    }
-    else
-    {
-        DerelictAllegro5.load();
-    }
+    DerelictAllegro5.load();
 
     const success = al_install_system(ALLEGRO_VERSION_INT, null);
     if (!success)
