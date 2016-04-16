@@ -12,7 +12,6 @@
 
 module sbxs.engine.dbi;
 
-import std.traits: hasMember;
 
 /**
  * Yields `true` if and only if Engine `E` has a subsystem `subsystem` which
@@ -50,7 +49,7 @@ unittest
 public string smCallIfMemberExists(string funcName)
 {
     return `
-        static if (hasMember!(typeof(this), "` ~ funcName ~ `"))
+        static if (__traits(hasMember, typeof(this), "` ~ funcName ~ `"))
         {
             ` ~ funcName ~ `();
         }`;
