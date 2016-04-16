@@ -61,7 +61,7 @@ public struct Allegro5Engine
     Allegro5OSSubsystem!Allegro5Engine os;
 
     /// Initializes the Allegro 5 library.
-    void initializeMore()
+    void initializeBackend()
     {
         initializeAllegro5!(typeof(this))();
     }

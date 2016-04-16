@@ -140,7 +140,7 @@ public mixin template DisplayCommon(E)
     body
     {
         _engine = engine;
-        mixin(smCallIfMemberExists("initializeMore"));
+        mixin(smCallIfMemberExists("initializeBackend"));
     }
 
     /// Shuts the subsystem down.
@@ -149,7 +149,7 @@ public mixin template DisplayCommon(E)
         foreach (ref display; _displaysByHandle)
             display.destroy();
 
-        mixin(smCallIfMemberExists("shutdownMore"));
+        mixin(smCallIfMemberExists("shutdownBackend"));
     }
 
     /**

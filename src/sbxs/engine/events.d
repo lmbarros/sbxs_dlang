@@ -108,13 +108,13 @@ public mixin template EventsCommon(E)
     body
     {
         _engine = engine;
-        mixin(smCallIfMemberExists("initializeMore"));
+        mixin(smCallIfMemberExists("initializeBackend"));
     }
 
     /// Shuts the subsystem down.
     void shutdown()
     {
-        mixin(smCallIfMemberExists("shutdownMore"));
+        mixin(smCallIfMemberExists("shutdownBackend"));
     }
 
     /**

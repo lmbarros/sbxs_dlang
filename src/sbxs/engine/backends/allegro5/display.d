@@ -169,7 +169,7 @@ version(HasAllegro5)
         public alias Display = Allegro5Display;
 
         /// Initializes the OpenGL bindings.
-        public void initializeMore()
+        public void initializeBackend()
         {
             DerelictGL3.load();
         }

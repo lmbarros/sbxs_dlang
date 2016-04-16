@@ -32,7 +32,7 @@ version(HasAllegro5)
          * This is called from `EventsCommon`, in a compile-time version of the
          * factory method design pattern.
          */
-        public void initializeMore()
+        public void initializeBackend()
         in
         {
             assert(_engine !is null);

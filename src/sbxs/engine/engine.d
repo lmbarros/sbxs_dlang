@@ -47,7 +47,7 @@ mixin template EngineCommon()
      */
     public void initialize()
     {
-        mixin(smCallIfMemberExists("initializeMore"));
+        mixin(smCallIfMemberExists("initializeBackend"));
 
         static if (engineHasMember!(typeof(this), "os", "initialize"))
             os.initialize(&this);
