@@ -8,10 +8,10 @@
 
 module sbxs.engine.backends.allegro5.os;
 
-import derelict.allegro5.allegro;
-
 version(HasAllegro5)
 {
+    import derelict.allegro5.allegro;
+
     /**
      * Operating System events subsystem based on the Allegro 5 library.
      *

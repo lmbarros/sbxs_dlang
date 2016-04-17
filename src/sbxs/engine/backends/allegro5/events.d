@@ -102,7 +102,7 @@ version(HasAllegro5)
         }
 
         /// Shuts the subsystem down.
-        public void shutdown()
+        public void shutdownBackend()
         {
             // Remove the event sources
             al_unregister_event_source(_eventQueue, al_get_joystick_event_source());
