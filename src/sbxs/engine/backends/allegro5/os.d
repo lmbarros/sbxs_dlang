@@ -1,5 +1,5 @@
 /**
- * Operating System events subsystem based on Allegro 5.
+ * Operating System subsystem based on Allegro 5.
  *
  * License: MIT License, see the `LICENSE` file.
  *
