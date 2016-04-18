@@ -1,82 +1,81 @@
 /**
- * SDL 2 back end: the back end itself.
+ * An engine backed by SDL 2.
  *
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.
  */
 
-module sbxs.engine.backends.sdl2.backend;
+module sbxs.engine.backends.sdl2.engine;
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 version(HasSDL2)
 {
-    import derelict.sdl2.sdl;
     import sbxs.engine;
-    import sbxs.engine.backends.sdl2;
+    import derelict.sdl2.sdl;
 
-    /// Engine back end based on the SDL 2 library.
-    public struct SDL2Backend
+    /**
+     * Performs basic SDL 2 initialization (all the required initialization
+     * which is not done by any subsystem).
+     *
+     * This must be called during the initialization of any Engine based on
+     * SDL 2.
+     *
+     * Parameters:
+     *     E = The type of engine being initialized.
+     */
+    public void initializeSDL2(E)()
     {
-        /// The type of an Engine using this back end.
-        public alias engineType = Engine!SDL2Backend;
+        import sbxs.engine.backends.sdl2.helpers: sdlGetError;
 
-        /// The engine using this back end.
-        private engineType* _engine;
+        DerelictSDL2.load();
 
-        /**
-         * Initializes the back end.
-         *
-         * Parameters:
-         *     engine = The engine using this back end.
-         */
-        public void initialize(engineType* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
-        {
-            import derelict.opengl3.gl3;
-            import sbxs.engine.backends.sdl2.helpers;
-
-            _engine = engine;
-
-            // General back end initialization
-            DerelictSDL2.load();
-            DerelictGL3.load();
-            if (SDL_Init(0) < 0)
-                throw new BackendInitializationException(sdlGetError());
-
-            // Initialize each subsystem
-            os.initialize(_engine);
-            events.initialize(_engine);
-            display.initialize(_engine);
-        }
-
-        /// Shuts the back end down.
-        public void shutdown()
-        {
-            // Shutdown each subsystem
-            display.shutdown();
-            events.shutdown();
-            os.shutdown();
-
-            // Shutdown SDL itself
-            SDL_Quit();
-        }
-
-        /// The OS subsystem.
-        public SDL2OSSubsystem!engineType os;
-
-        /// The Display subsystem.
-        public SDL2DisplaySubsystem!engineType display;
-
-        /// The Events subsystem.
-        public SDL2EventsSubsystem!engineType events;
-
-        /// The Display type, as provided by the back end.
-        public alias Display = typeof(display).Display;
+        if (SDL_Init(0) < 0)
+            throw new BackendInitializationException(sdlGetError());
     }
-}
-+/
+
+    /**
+     * Performs basic SDL 2 shutdown (all the required shutdown tasks
+     * which are not done by any subsystem).
+     *
+     * This must be called during the shutdown of any Engine based on
+     * SDL 2.
+     *
+     * Parameters:
+     *     E = The type of engine being shutdown.
+     */
+    public void shutdownSDL2(E)()
+    {
+        SDL_Quit();
+    }
+
+
+    /// An engine entirely backed by SDL 2.
+    public struct SDL2Engine
+    {
+        import sbxs.engine.backends.sdl2;
+
+        mixin EngineCommon;
+
+        /// The display subsystem.
+        SDL2DisplaySubsystem!SDL2Engine display;
+
+        /// The events subsystem.
+        SDL2EventsSubsystem!SDL2Engine events;
+
+        /// The operating system subsystem.
+        SDL2OSSubsystem!SDL2Engine os;
+
+        /// Initializes the SDL 2 library.
+        void initializeBackend()
+        {
+            initializeSDL2!(typeof(this))();
+        }
+
+        /// Shuts down the SDL 2 library.
+        void shutdownBackend()
+        {
+            shutdownSDL2!(typeof(this))();
+        }
+    }
+
+} // version(HasSDL2)

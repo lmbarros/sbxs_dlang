@@ -1,5 +1,5 @@
 /**
- * SDL 2 back end: Operating System subsystem.
+ * Operating System subsystem based on SDL 2.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -13,34 +13,16 @@ version(HasSDL2)
     import derelict.sdl2.sdl;
 
     /**
-     * Operating System engine subsystem back end, based on the SDL 2 library.
+     * Operating System subsystem based on the Allegro 5 library.
      *
      * Parameters:
-     *     E = The type of the engine using this subsystem back end.
+     *     E = The type of the engine using this subsystem.
      */
-    package struct SDL2OSSubsystem(E)
+    public struct SDL2OSSubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
+        import sbxs.engine.os: OSCommon;
 
-        /**
-         * Initializes the subsystem.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void initialize(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
-        {
-            _engine = engine;
-        }
-
-        /// Shuts the subsystem down.
-        public void shutdown() { }
+        mixin OSCommon!E;
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
         public double getTime()

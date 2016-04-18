@@ -23,31 +23,29 @@ version(HasSDL2)
     }
 
     /**
-     * Events engine subsystem back end, based on the SDL 2 library.
+     * Engine events subsystem based on the Allegro 5 library.
      *
      * Parameters:
-     *     E = The type of the engine using this subsystem back end.
+     *     E = The type of the engine using this subsystem.
      */
-    package struct SDL2EventsSubsystem(E)
+    public struct SDL2EventsSubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
+        mixin EventsCommon!E;
 
         /**
-         * Initializes the subsystem.
+         * Performs any further, back end-specific initialization of the
+         * subsystem.
          *
-         * Parameters:
-         *     engine = The engine using this subsystem.
+         * This is called from `EventsCommon`, in a compile-time version of the
+         * factory method design pattern.
          */
-        public void initialize(E* engine)
+        public void initializeBackend()
         in
         {
-            assert(engine !is null);
+            assert(_engine !is null);
         }
         body
         {
-            _engine = engine;
-
             // Initialize the SDL events subsystem
             // TODO: SDL_INIT_JOYSTICK? SDL_INIT_GAMECONTROLLER? (Update `shutdown()` accordingly!)
             if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0)
@@ -84,7 +82,7 @@ version(HasSDL2)
         }
 
         /// Shuts the subsystem down.
-        public void shutdown()
+        public void shutdownBackend()
         {
             // Free the `_tickEventData` memory
             import core.stdc.stdlib: free;
@@ -142,8 +140,6 @@ version(HasSDL2)
          * Creates and returns a draw event.
          *
          * Parameters:
-         *     deltaTimeInSecs = The time elapsed, since the last draw event,
-         *         in seconds.
          *     drawingTimeInSecs = The current drawing time, measured in seconds
          *         since the program started to run.
          *     timeSinceTickInSecs = The time elapsed since the lastest tick
@@ -151,10 +147,8 @@ version(HasSDL2)
          *
          * Returns: A draw event.
          */
-        public Event makeDrawEvent(double deltaTimeInSecs, double drawingTimeInSecs,
-            double timeSinceTickInSecs)
+        public Event makeDrawEvent(double drawingTimeInSecs, double timeSinceTickInSecs)
         {
-            _drawEventData.deltaTimeInSecs = deltaTimeInSecs;
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
@@ -302,37 +296,19 @@ version(HasSDL2)
             }
 
             /**
-             * Returns the time elapsed, in seconds, since the previous event
-             * of the same type.
+             * Returns the time elapsed, in seconds, since the previous tick event.
              *
-             * Valid for: `tick`, `draw`.
+             * Valid for: `tick`
              */
             public @property double deltaTimeInSecs() const nothrow @nogc
             in
             {
-                assert(_event.common.type == sdlEventTypeTick
-                    || _event.common.type == sdlEventTypeDraw);
+                assert(_event.common.type == sdlEventTypeTick);
             }
             body
             {
-                switch(_event.common.type)
-                {
-                    case sdlEventTypeTick:
-                    {
-                        const pTED = cast(TickEventData*)_event.user.data1;
-                        return pTED.deltaTimeInSecs;
-                    }
-
-                    case sdlEventTypeDraw:
-                    {
-                        assert(_event.common.type == sdlEventTypeDraw);
-                        const pDED = cast(DrawEventData*)_event.user.data1;
-                        return pDED.deltaTimeInSecs;
-                    }
-
-                    default:
-                        assert(false, "Invalid event type");
-                }
+                const pTED = cast(TickEventData*)_event.user.data1;
+                return pTED.deltaTimeInSecs;
             }
 
             /**
@@ -383,8 +359,9 @@ version(HasSDL2)
                 return cast(KeyCode)(_event.key.keysym.sym);
             }
 
-            static if (hasMember!(typeof(E.backend), "display"))
+            static if (engineHasMember!(E, "display", "Display"))
             {
+
                 /**
                  * Returns the Display which had the focus when the event was generated.
                  *
@@ -394,7 +371,7 @@ version(HasSDL2)
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
                  * `mouseWheelUp`, `mouseWheelDown`, `windowResize`, `windowExpose`.
                  */
-                public @property inout(E.backendType.Display*) display() inout nothrow @nogc
+                public @property inout(E.Display*) display() inout nothrow @nogc
                 in
                 {
                     assert(_event.common.type == SDL_KEYDOWN
@@ -455,8 +432,7 @@ version(HasSDL2)
                  * Valid for: `keyDown`, `keyUp`, `mouseMove`, `mouseDown`, `mouseUp`,
                  * `mouseWheelUp`, `mouseWheelDown`, `windowResize`, `windowExpose`.
                  */
-                public @property E.backendType.Display.handleType
-                    displayHandle() const nothrow @nogc
+                public @property E.Display.handleType displayHandle() const nothrow @nogc
                 in
                 {
                     assert(_event.common.type == SDL_KEYDOWN

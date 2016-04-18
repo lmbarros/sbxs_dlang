@@ -1,5 +1,5 @@
 /**
- * SDL 2 back end: Display subsystem.
+ * Engine display subsystem based on SDL 2.
  *
  * License: MIT License, see the `LICENSE` file.
  *
@@ -164,38 +164,32 @@ version(HasSDL2)
      * Parameters:
      *     E = The type of the engine using this subsystem back end.
      */
-    package struct SDL2DisplaySubsystem(E)
+    public struct SDL2DisplaySubsystem(E)
     {
-        /// The Engine using this subsystem back end.
-        private E* _engine;
-
-        /**
-         * Initializes the subsystem.
-         *
-         * Parameters:
-         *     engine = The engine using this subsystem.
-         */
-        public void initialize(E* engine)
-        in
-        {
-            assert(engine !is null);
-        }
-        body
-        {
-            _engine = engine;
-
-            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-                throw new BackendInitializationException(sdlGetError());
-        }
-
-        /// Shuts the subsystem down.
-        public void shutdown() nothrow @nogc
-        {
-            SDL_QuitSubSystem(SDL_INIT_VIDEO);
-        }
+        mixin DisplayCommon!E;
 
         /// The type used as Display.
         public alias Display = SDL2Display;
+
+        /// Initializes the subsystem.
+        public void initializeBackend()
+        in
+        {
+            assert(_engine !is null);
+        }
+        body
+        {
+            if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+                throw new BackendInitializationException(sdlGetError());
+
+            DerelictGL3.load();
+        }
+
+        /// Shuts the subsystem down.
+        public void shutdownBackend() nothrow @nogc
+        {
+            SDL_QuitSubSystem(SDL_INIT_VIDEO);
+        }
     }
 
 } // version HasSDL2
