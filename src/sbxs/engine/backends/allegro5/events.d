@@ -302,10 +302,9 @@ version(HasAllegro5)
             }
 
             /**
-             * Returns the time elapsed, in seconds, since the previous event
-             * of the same type.
+             * Returns the time elapsed, in seconds, since the previous tick event.
              *
-             * Valid for: `tick`.
+             * Valid for: `tick`
              */
             public @property double deltaTimeInSecs() const nothrow @nogc
             in
@@ -366,7 +365,7 @@ version(HasAllegro5)
                 return cast(KeyCode)(_event.keyboard.keycode);
             }
 
-            static if (hasMember!(E, "display"))
+            static if (engineHasMember!(E, "display", "Display"))
             {
                 /**
                  * Returns the Display which had the focus when the event was
