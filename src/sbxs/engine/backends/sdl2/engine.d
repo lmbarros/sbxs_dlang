@@ -19,11 +19,8 @@ version(HasSDL2)
      *
      * This must be called during the initialization of any Engine based on
      * SDL 2.
-     *
-     * Parameters:
-     *     E = The type of engine being initialized.
      */
-    public void initializeSDL2(E)()
+    public void initializeSDL2()
     {
         import sbxs.engine.backends.sdl2.helpers: sdlGetError;
 
@@ -39,11 +36,8 @@ version(HasSDL2)
      *
      * This must be called during the shutdown of any Engine based on
      * SDL 2.
-     *
-     * Parameters:
-     *     E = The type of engine being shutdown.
      */
-    public void shutdownSDL2(E)()
+    public void shutdownSDL2()
     {
         SDL_Quit();
     }
@@ -68,13 +62,13 @@ version(HasSDL2)
         /// Initializes the SDL 2 library.
         void initializeBackend()
         {
-            initializeSDL2!(typeof(this))();
+            initializeSDL2();
         }
 
         /// Shuts down the SDL 2 library.
         void shutdownBackend()
         {
-            shutdownSDL2!(typeof(this))();
+            shutdownSDL2();
         }
     }
 

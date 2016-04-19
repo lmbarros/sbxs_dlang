@@ -21,11 +21,8 @@ version(HasAllegro5)
      *
      * This must be called during the initialization of any Engine based on
      * Allegro 5.
-     *
-     * Parameters:
-     *     E = The type of engine being initialized.
      */
-    public void initializeAllegro5(E)()
+    public void initializeAllegro5()
     {
         import derelict.allegro5.allegro;
         import derelict.opengl3.gl3;
@@ -44,11 +41,8 @@ version(HasAllegro5)
      *
      * This must be called during the shutdown of any Engine based on
      * Allegro 5.
-     *
-     * Parameters:
-     *     E = The type of engine being shutdown.
      */
-    public void shutdownAllegro5(E)()
+    public void shutdownAllegro5()
     {
         import derelict.allegro5.allegro: al_uninstall_system;
         al_uninstall_system();
@@ -74,13 +68,13 @@ version(HasAllegro5)
         /// Initializes the Allegro 5 library.
         void initializeBackend()
         {
-            initializeAllegro5!(typeof(this))();
+            initializeAllegro5();
         }
 
         /// Shuts the Allegro 5 library down.
         void shutdownBackend()
         {
-            shutdownAllegro5!(typeof(this))();
+            shutdownAllegro5();
         }
     }
 
