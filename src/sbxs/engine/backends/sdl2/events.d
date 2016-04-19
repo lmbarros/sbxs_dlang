@@ -62,35 +62,11 @@ version(HasSDL2)
             sdlEventTypeTick = firstUserEventType;
             sdlEventTypeDraw = firstUserEventType + 1;
             sdlEventTypeAppState = firstUserEventType + 2;
-
-            // Allocate memory for `_tickEventData`
-            import core.stdc.stdlib: malloc;
-            _tickEventData = cast(TickEventData*)malloc(TickEventData.sizeof);
-            if (_tickEventData is null)
-            {
-                throw new BackendInitializationException(
-                    "Error allocating memory for tick event data.");
-            }
-
-            // Allocate memory for `_drawEventData`
-            _drawEventData = cast(DrawEventData*)malloc(DrawEventData.sizeof);
-            if (_drawEventData is null)
-            {
-                throw new BackendInitializationException(
-                    "Error allocating memory for draw event data.");
-            }
         }
 
         /// Shuts the subsystem down.
         public void shutdownBackend()
         {
-            // Free the `_tickEventData` memory
-            import core.stdc.stdlib: free;
-            free(_tickEventData);
-
-            // Free the `_drawEventData` memory
-            free(_drawEventData);
-
             // Shut down the SDL events subsystem
             SDL_QuitSubSystem(SDL_INIT_EVENTS);
         }
@@ -128,7 +104,7 @@ version(HasSDL2)
         {
             _tickEventData.deltaTimeInSecs = deltaTimeInSecs;
             _tickEventData.tickTimeInSecs = tickTimeInSecs;
-            auto tickEvent = makeSDLEvent(sdlEventTypeTick, _tickEventData);
+            auto tickEvent = makeSDLEvent(sdlEventTypeTick, &_tickEventData);
             const rc = SDL_PushEvent(&tickEvent);
             if (rc != 1)
             {
@@ -152,7 +128,7 @@ version(HasSDL2)
             _drawEventData.drawingTimeInSecs = drawingTimeInSecs;
             _drawEventData.timeSinceTickInSecs = timeSinceTickInSecs;
 
-            return Event(makeSDLEvent(sdlEventTypeDraw, _drawEventData), _engine);
+            return Event(makeSDLEvent(sdlEventTypeDraw, &_drawEventData), _engine);
         }
 
         /**
@@ -533,24 +509,19 @@ version(HasSDL2)
         }
 
         /**
-         * Data passed to tick events. Since at any moment we have at
-         * most one single tick event in the SDL event queue, we can use
-         * this single instance.
+         * Data passed to tick events.
          *
-         * BTW, this a pointer pointing to `malloc`ed memory (instead of
-         * a regular member) just because I don't want to have this data
-         * being handled by the garbage collector. My fear is that some
-         * future implementation of the garbage collector may move data
-         * around the memory (and SDL-managed structures would still
-         * point to the old, noe incorrect address).
+         * Since at any moment we have at most one single tick event in
+         * the SDL event queue, we can use this single instance.
          */
-        private TickEventData* _tickEventData;
+        private TickEventData _tickEventData;
 
         /**
-         * Data passed to draw events. Everything said about `_tickEventData`
-         * holds here, too.
+         * Data passed to draw events.
+         *
+         * Everything said about `_tickEventData` holds here, too.
          */
-        private DrawEventData* _drawEventData;
+        private DrawEventData _drawEventData;
 
         /// The number of SDL event types to reserve for the engine.
         private enum numUserEvents = 8;
