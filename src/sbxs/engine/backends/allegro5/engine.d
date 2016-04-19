@@ -38,6 +38,22 @@ version(HasAllegro5)
             throw new BackendInitializationException();
     }
 
+    /**
+     * Performs basic Allegro 5 shutdown (all the required shutdown
+     * tasks which are not done by any subsystem).
+     *
+     * This must be called during the shutdown of any Engine based on
+     * Allegro 5.
+     *
+     * Parameters:
+     *     E = The type of engine being shutdown.
+     */
+    public void shutdownAllegro5(E)()
+    {
+        import derelict.allegro5.allegro: al_uninstall_system;
+        al_uninstall_system();
+    }
+
 
     /// An engine entirely backed by Allegro 5.
     public struct Allegro5Engine
@@ -59,6 +75,12 @@ version(HasAllegro5)
         void initializeBackend()
         {
             initializeAllegro5!(typeof(this))();
+        }
+
+        /// Shuts the Allegro 5 library down.
+        void shutdownBackend()
+        {
+            shutdownAllegro5!(typeof(this))();
         }
     }
 
