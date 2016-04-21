@@ -56,8 +56,8 @@ version(HaveSDL2)
         /// The events subsystem.
         SDL2EventsSubsystem!SDL2Engine events;
 
-        /// The operating system subsystem.
-        SDL2OSSubsystem!SDL2Engine os;
+        /// The time subsystem.
+        SDL2TimeSubsystem!SDL2Engine time;
 
         /// Initializes the SDL 2 library.
         void initializeBackend()

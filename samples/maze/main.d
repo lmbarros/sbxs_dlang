@@ -83,12 +83,12 @@ void main()
     auto d = engine.display.create(dp);
     writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
 
-    while(engine.os.getTime() < 5.0)
+    while(engine.time.getTime() < 5.0)
     {
         engine.events.tick(0.2);
         engine.events.draw(0.2);
-        engine.os.sleep(0.2);
-        writefln("Now it is %s...", engine.os.getTime());
+        engine.time.sleep(0.2);
+        writefln("Now it is %s...", engine.time.getTime());
     }
 
     writefln("Leaving after 5 seconds.");

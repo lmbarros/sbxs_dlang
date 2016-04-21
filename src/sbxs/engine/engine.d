@@ -49,8 +49,8 @@ mixin template EngineCommon()
     {
         mixin(smCallIfMemberExists("initializeBackend"));
 
-        static if (engineHasMember!(typeof(this), "os", "initialize"))
-            os.initialize(&this);
+        static if (engineHasMember!(typeof(this), "time", "initialize"))
+            time.initialize(&this);
 
         static if (engineHasMember!(typeof(this), "events", "initialize"))
             events.initialize(&this);
@@ -77,7 +77,7 @@ mixin template EngineCommon()
             events.shutdown();
 
         static if (engineHasMember!(typeof(this), "os", "shutdown"))
-            os.shutdown();
+            time.shutdown();
     }
 
     static if (engineHasMember!(typeof(this), "display", "Display"))
@@ -125,14 +125,14 @@ unittest
     assert(engine.backend.isInited == false);
     assert(engine.backend.display.isInited == false);
     assert(engine.backend.events.isInited == false);
-    assert(engine.backend.os.isInited == false);
+    assert(engine.backend.time.isInited == false);
 
     // Now initialize -- hopefully, everything
     engine.initialize();
     assert(engine.backend.isInited == true);
     assert(engine.backend.display.isInited == true);
     assert(engine.backend.events.isInited == true);
-    assert(engine.backend.os.isInited == true);
+    assert(engine.backend.time.isInited == true);
 }
 
 +/

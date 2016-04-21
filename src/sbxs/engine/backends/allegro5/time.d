@@ -1,28 +1,28 @@
 /**
- * Operating System subsystem based on Allegro 5.
+ * Time subsystem based on Allegro 5.
  *
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.
  */
 
-module sbxs.engine.backends.allegro5.os;
+module sbxs.engine.backends.allegro5.time;
 
 version(HaveAllegro5)
 {
     import derelict.allegro5.allegro;
 
     /**
-     * Operating System subsystem based on the Allegro 5 library.
+     * Time subsystem based on the Allegro 5 library.
      *
      * Parameters:
      *     E = The type of the engine using this subsystem.
      */
-    public struct Allegro5OSSubsystem(E)
+    public struct Allegro5TimeSubsystem(E)
     {
-        import sbxs.engine.os: OSCommon;
+        import sbxs.engine.time: TimeCommon;
 
-        mixin OSCommon!E;
+        mixin TimeCommon!E;
 
         /// Returns the current wall time, in seconds since some unspecified epoch.
         public double getTime()

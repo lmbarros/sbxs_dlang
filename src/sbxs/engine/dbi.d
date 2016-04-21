@@ -23,19 +23,19 @@ public enum engineHasMember(E, string subsystem, string member) =
 ///
 unittest
 {
-    struct OS
+    struct Time
     {
         void sleep(double timeInSecs) { }
     }
 
     struct Engine
     {
-        OS os;
+        Time time;
     }
 
-    static assert(engineHasMember!(Engine, "os", "sleep"));
-    static assert(!engineHasMember!(Engine, "os", "getTime"));
-    static assert(!engineHasMember!(Engine, "ooss", "sleep"));
+    static assert(engineHasMember!(Engine, "time", "sleep"));
+    static assert(!engineHasMember!(Engine, "time", "getTime"));
+    static assert(!engineHasMember!(Engine, "tyme", "sleep"));
 }
 
 

@@ -12,7 +12,7 @@ public import sbxs.engine.backend;
 public import sbxs.engine.display;
 public import sbxs.engine.engine;
 public import sbxs.engine.events;
-public import sbxs.engine.os;
+public import sbxs.engine.time;
 public import sbxs.engine.dbi;
 
 

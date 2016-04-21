@@ -11,7 +11,7 @@
 module sbxs.engine.backends.sdl2;
 
 public import sbxs.engine.backends.sdl2.engine;
-public import sbxs.engine.backends.sdl2.os;
+public import sbxs.engine.backends.sdl2.time;
 public import sbxs.engine.backends.sdl2.display;
 public import sbxs.engine.backends.sdl2.events;
 

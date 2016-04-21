@@ -60,8 +60,8 @@ version(HaveAllegro5)
         /// The events subsystem.
         Allegro5EventsSubsystem!Allegro5Engine events;
 
-        /// The operating system subsystem.
-        Allegro5OSSubsystem!Allegro5Engine os;
+        /// The time subsystem.
+        Allegro5TimeSubsystem!Allegro5Engine time;
 
         /// Initializes the Allegro 5 library.
         void initializeBackend()
