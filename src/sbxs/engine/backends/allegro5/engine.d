@@ -1,4 +1,3 @@
-
 /**
  * An engine backed by Allegro 5.
  *
@@ -9,8 +8,7 @@
 
 module sbxs.engine.backends.allegro5.engine;
 
-
-version(HasAllegro5)
+version(HaveAllegro5)
 {
     import sbxs.engine;
 
@@ -78,4 +76,4 @@ version(HasAllegro5)
         }
     }
 
-} // version(HasAllegro5)
+} // version HaveAllegro5

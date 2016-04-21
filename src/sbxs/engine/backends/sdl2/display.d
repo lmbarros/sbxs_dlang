@@ -8,7 +8,7 @@
 
 module sbxs.engine.backends.sdl2.display;
 
-version(HasSDL2)
+version(HaveSDL2)
 {
     import derelict.sdl2.sdl;
     import derelict.opengl3.gl3;
@@ -192,4 +192,4 @@ version(HasSDL2)
         }
     }
 
-} // version HasSDL2
+} // version HaveSDL2

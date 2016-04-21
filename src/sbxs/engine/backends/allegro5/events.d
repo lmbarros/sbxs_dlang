@@ -8,7 +8,7 @@
 
 module sbxs.engine.backends.allegro5.events;
 
-version(HasAllegro5)
+version(HaveAllegro5)
 {
     import derelict.allegro5.allegro;
     import sbxs.engine;
@@ -660,4 +660,4 @@ version(HasAllegro5)
         }
     }
 
-} // version HasAllegro5
+} // version HaveAllegro5

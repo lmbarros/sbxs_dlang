@@ -8,7 +8,7 @@
 
 module sbxs.engine.backends.sdl2.os;
 
-version(HasSDL2)
+version(HaveSDL2)
 {
     import derelict.sdl2.sdl;
 
@@ -37,4 +37,4 @@ version(HasSDL2)
         }
     }
 
-} // version HasSDL2
+} // version HaveSDL2

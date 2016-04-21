@@ -8,8 +8,8 @@
 --       and code coverage.
 --
 -- Optional Libraries:
---     - SDL 2 [HasSDL2]: For the engine back end based on SDL 2.
---     - Allegro 5 [HasAllegro5]: For the engine back end based on Allegro 5.
+--     - SDL 2 [HaveSDL2]: For the engine back end based on SDL 2.
+--     - Allegro 5 [HaveAllegro5]: For the engine back end based on Allegro 5.
 
 
 -------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ local filesAllegro5 = {
 
 
 -- Version constants for all the dependencies
-local versionAllDeps = { "HasSDL2", "HasAllegro5" }
+local versionAllDeps = { "HaveSDL2", "HaveAllegro5" }
 
 
 

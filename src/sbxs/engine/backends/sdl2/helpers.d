@@ -8,7 +8,7 @@
 
 module sbxs.engine.backends.sdl2.helpers;
 
-version(HasSDL2)
+version(HaveSDL2)
 {
     import derelict.sdl2.sdl;
 
@@ -18,4 +18,4 @@ version(HasSDL2)
         import std.conv: to;
         return to!string(SDL_GetError());
     }
-}
+} // version HaveSDL2

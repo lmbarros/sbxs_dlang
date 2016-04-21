@@ -8,7 +8,7 @@
 
 module sbxs.engine.backends.allegro5.os;
 
-version(HasAllegro5)
+version(HaveAllegro5)
 {
     import derelict.allegro5.allegro;
 
@@ -37,4 +37,4 @@ version(HasAllegro5)
         }
     }
 
-} // version HasAllegro5
+} // version HaveAllegro5
