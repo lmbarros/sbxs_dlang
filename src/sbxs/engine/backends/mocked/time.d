@@ -1,48 +1,25 @@
 /**
- * Mocked back end: Operating System subsystem.
+ * Time subsystem, mocked for testing.
  *
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.
  */
 
-module sbxs.engine.backends.mocked.os;
+module sbxs.engine.backends.mocked.time;
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 /**
- * Mocked Operating System engine subsystem back end.
+ * Time subsystem, mocked for testing.
  *
  * Parameters:
- *     E = The type of the engine using this subsystem back end.
+ *     E = The type of the engine using this subsystem.
  */
-package struct MockedOSSubsystem(E)
+package struct MockedTimeSubsystem(E)
 {
-    /// The Engine using this subsystem back end.
-    private E* _engine;
+    import sbxs.engine.time: TimeCommon;
 
-    /**
-     * Initializes the subsystem.
-     *
-     * Parameters:
-     *     engine = The engine using this subsystem.
-     */
-    public void initialize(E* engine)
-    in
-    {
-        assert(engine !is null);
-    }
-    body
-    {
-        _isInited = true;
-        _engine = engine;
-    }
-
-    /// Shuts the subsystem down.
-    public void shutdown()
-    {
-        _isInited = false;
-    }
+    mixin TimeCommon!E;
 
     /// Returns the current wall time, in seconds since some unspecified epoch.
     public double getTime()
@@ -114,12 +91,6 @@ package struct MockedOSSubsystem(E)
      */
     public double[] mockedDrawIncrements = [ ];
 
-    /// Is this back end initialized?
-    public @property bool isInited() const nothrow @nogc { return _isInited; }
-
-    /// Ditto
-    private bool _isInited = false;
-
     /// The current (mocked) time.
     private double _currentTime = 0.0;
 }
@@ -129,79 +100,61 @@ package struct MockedOSSubsystem(E)
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Tests if the back end subsystem is properly initialized.
-unittest
+version(unittest)
 {
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
-    MockedOSSubsystem!(Engine!MockedBackend) os;
-
-    // Initially, not initialized
-    assert(!os.isInited);
-
-    // Initialize
-    os.initialize(&engine);
-    assert(os.isInited);
-
-    // Multiple initialization shouldn't be a problem
-    os.initialize(&engine);
-    assert(os.isInited);
-    os.initialize(&engine);
-    assert(os.isInited);
-
-    // After shutdown, back end should no longer be considered intialized
-    os.shutdown();
-    assert(!os.isInited);
+    struct TestEngine
+    {
+        mixin EngineCommon;
+        MockedTimeSubsystem!TestEngine time;
+    }
 }
 
 
 // Tests if time passes as expected.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
     import sbxs.util.test;
 
     enum epsilon = 1e-7;
 
-    Engine!MockedBackend engine;
-    MockedOSSubsystem!(Engine!MockedBackend) os;
+    TestEngine engine;
+    engine.initialize();
 
-    os.mockedTickIncrements = [ 0.1, 0.2, 0.1, 0.2 ];
-    os.mockedDrawIncrements = [ 0.4, 0.5 ];
+    engine.time.mockedTickIncrements = [ 0.1, 0.2, 0.1, 0.2 ];
+    engine.time.mockedDrawIncrements = [ 0.4, 0.5 ];
 
     // Time should be zero initially
-    assert(os.getTime() == 0.0);
+    assert(engine.time.getTime() == 0.0);
 
     // Pass time manually
-    os.sleep(1.0);
-    assertClose(os.getTime(), 1.0, epsilon);
+    engine.time.sleep(1.0);
+    assertClose(engine.time.getTime(), 1.0, epsilon);
 
     // Pass time via calls to `onEndDraw()` and `onEndTick()`
-    os.onEndTick();
-    assertClose(os.getTime(), 1.1, epsilon);
+    engine.time.onEndTick();
+    assertClose(engine.time.getTime(), 1.1, epsilon);
 
-    os.onEndTick();
-    assertClose(os.getTime(), 1.3, epsilon);
+    engine.time.onEndTick();
+    assertClose(engine.time.getTime(), 1.3, epsilon);
 
-    os.onEndDraw();
-    assertClose(os.getTime(), 1.7, epsilon);
+    engine.time.onEndDraw();
+    assertClose(engine.time.getTime(), 1.7, epsilon);
 
-    os.onEndTick();
-    assertClose(os.getTime(), 1.8, epsilon);
+    engine.time.onEndTick();
+    assertClose(engine.time.getTime(), 1.8, epsilon);
 
-    os.onEndTick();
-    assertClose(os.getTime(), 2.0, epsilon);
+    engine.time.onEndTick();
+    assertClose(engine.time.getTime(), 2.0, epsilon);
 
-    os.onEndDraw();
-    assertClose(os.getTime(), 2.5, epsilon);
+    engine.time.onEndDraw();
+    assertClose(engine.time.getTime(), 2.5, epsilon);
 
     // We should be out of "times" now
     import core.exception;
     import std.exception;
-    assertThrown!AssertError(os.onEndTick());
-    assertThrown!AssertError(os.onEndTick());
+    assertThrown!AssertError(engine.time.onEndTick());
+    assertThrown!AssertError(engine.time.onEndDraw());
 }
-+/
