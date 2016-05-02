@@ -12,8 +12,6 @@
 
 module sbxs.engine.engine;
 
-import std.traits: hasMember;
-
 
 /**
  * Common implementation of an Engine.

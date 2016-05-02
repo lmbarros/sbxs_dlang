@@ -33,11 +33,6 @@ version(HaveAllegro5)
          * factory method design pattern.
          */
         public void initializeBackend()
-        in
-        {
-            assert(_engine !is null);
-        }
-        body
         {
             // Initialize the required Allegro subsystems
             if (!al_install_keyboard())
