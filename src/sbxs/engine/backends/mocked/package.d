@@ -9,6 +9,7 @@
 module sbxs.engine.backends.mocked;
 
 public import sbxs.engine.backends.mocked.display;
+public import sbxs.engine.backends.mocked.engine;
 public import sbxs.engine.backends.mocked.events;
 public import sbxs.engine.backends.mocked.time;
 

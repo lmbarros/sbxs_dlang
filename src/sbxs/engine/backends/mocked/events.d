@@ -8,25 +8,20 @@
 
 module sbxs.engine.backends.mocked.events;
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 import sbxs.engine;
 import sbxs.engine.backends.events_common;
 
 
 /**
- * Mocked Events engine subsystem back end.
+ * Mocked events engine subsystem back end, for testing.
  *
  * Parameters:
  *     E = The type of the engine using this subsystem back end.
  */
 package struct MockedEventsSubsystem(E)
 {
-    /// The Engine using this subsystem back end.
-    private E* _engine;
-
-    /// The type of Display handles.
-    private alias displayHandleType = E.backendType.Display.handleType;
+    mixin EventsCommon!E;
 
     /**
      * The event queue.
@@ -42,19 +37,13 @@ package struct MockedEventsSubsystem(E)
      * Parameters:
      *     engine = The engine using this subsystem.
      */
-    public void initialize(E* engine)
-    in
+    public void initializeBackend()
     {
-        assert(engine !is null);
-    }
-    body
-    {
-        _engine = engine;
         _isInited = true;
     }
 
     /// Shuts the subsystem down.
-    public void shutdown()
+    public void shutdownBackend()
     {
         _isInited = false;
     }
@@ -110,103 +99,111 @@ package struct MockedEventsSubsystem(E)
         return event;
     }
 
-    /// Creates a Key Down event; convenience for testing.
-    public Event makeKeyDownEvent(KeyCode keyCode, displayHandleType displayHandle)
+    static if (engineHasMember!(E, "display", "Display"))
     {
-        auto event = Event(_engine, EventType.keyDown);
+        /// The type of Display handles.
+        private alias displayHandleType = E.display.Display.handleType;
 
-        event._keyCode = keyCode;
-        event._displayHandle = displayHandle;
+        /// Creates a Key Down event; convenience for testing.
+        public Event makeKeyDownEvent(KeyCode keyCode, displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.keyDown);
 
-        return event;
-    }
+            event._keyCode = keyCode;
+            event._displayHandle = displayHandle;
 
-    /// Creates a Key Up event; convenience for testing.
-    public Event makeKeyUpEvent(KeyCode keyCode, displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.keyUp);
+            return event;
+        }
 
-        event._keyCode = keyCode;
-        event._displayHandle = displayHandle;
+        /// Creates a Key Up event; convenience for testing.
+        public Event makeKeyUpEvent(KeyCode keyCode, displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.keyUp);
 
-        return event;
-    }
+            event._keyCode = keyCode;
+            event._displayHandle = displayHandle;
 
-    /// Creates a Mouse Move event; convenience for testing.
-    public Event makeMouseMoveEvent(int mouseX, int mouseY, displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.mouseMove);
+            return event;
+        }
 
-        event._mouseX = mouseX;
-        event._mouseY = mouseY;
-        event._displayHandle = displayHandle;
+        /// Creates a Mouse Move event; convenience for testing.
+        public Event makeMouseMoveEvent(int mouseX, int mouseY, displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.mouseMove);
 
-        return event;
-    }
+            event._mouseX = mouseX;
+            event._mouseY = mouseY;
+            event._displayHandle = displayHandle;
 
-    /// Creates a Mouse Down event; convenience for testing.
-    public Event makeMouseDownEvent(MouseButton mouseButton, int mouseX, int mouseY,
-        displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.mouseDown);
+            return event;
+        }
 
-        event._mouseX = mouseX;
-        event._mouseY = mouseY;
-        event._mouseButton = mouseButton;
-        event._displayHandle = displayHandle;
+        /// Creates a Mouse Down event; convenience for testing.
+        public Event makeMouseDownEvent(MouseButton mouseButton, int mouseX, int mouseY,
+            displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.mouseDown);
 
-        return event;
-    }
+            event._mouseX = mouseX;
+            event._mouseY = mouseY;
+            event._mouseButton = mouseButton;
+            event._displayHandle = displayHandle;
 
-    /// Creates a Mouse Up event; convenience for testing.
-    public Event makeMouseUpEvent(MouseButton mouseButton, int mouseX, int mouseY,
-        displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.mouseUp);
+            return event;
+        }
 
-        event._mouseX = mouseX;
-        event._mouseY = mouseY;
-        event._mouseButton = mouseButton;
-        event._displayHandle = displayHandle;
+        /// Creates a Mouse Up event; convenience for testing.
+        public Event makeMouseUpEvent(MouseButton mouseButton, int mouseX, int mouseY,
+            displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.mouseUp);
 
-        return event;
-    }
+            event._mouseX = mouseX;
+            event._mouseY = mouseY;
+            event._mouseButton = mouseButton;
+            event._displayHandle = displayHandle;
 
-    /// Creates a Mouse Wheel Up event; convenience for testing.
-    public Event makeMouseWheelUpEvent(displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.mouseWheelUp);
+            return event;
+        }
 
-        event._displayHandle = displayHandle;
+        /// Creates a Mouse Wheel Up event; convenience for testing.
+        public Event makeMouseWheelUpEvent(displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.mouseWheelUp);
 
-        return event;
-    }
+            event._displayHandle = displayHandle;
 
-    /// Creates a Mouse Wheel Down event; convenience for testing.
-    public Event makeMouseWheelDownEvent(displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.mouseWheelDown);
+            return event;
+        }
 
-        event._displayHandle = displayHandle;
+        /// Creates a Mouse Wheel Down event; convenience for testing.
+        public Event makeMouseWheelDownEvent(displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.mouseWheelDown);
 
-        return event;
-    }
+            event._displayHandle = displayHandle;
 
-    /// Creates a Display Resize event; convenience for testing.
-    public Event makeDisplayResizeEvent(displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.displayResize);
-        event._displayHandle = displayHandle;
-        return event;
-    }
+            return event;
+        }
 
-    /// Creates a Display Expose event; convenience for testing.
-    public Event makeDisplayExposeEvent(displayHandleType displayHandle)
-    {
-        auto event = Event(_engine, EventType.displayExpose);
-        event._displayHandle = displayHandle;
-        return event;
-    }
+        /// Creates a Display Resize event; convenience for testing.
+        public Event makeDisplayResizeEvent(displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.displayResize);
+            event._displayHandle = displayHandle;
+            return event;
+        }
+
+        /// Creates a Display Expose event; convenience for testing.
+        public Event makeDisplayExposeEvent(displayHandleType displayHandle)
+        {
+            auto event = Event(_engine, EventType.displayExpose);
+            event._displayHandle = displayHandle;
+            return event;
+        }
+
+    } // static if (engineHasMember!(E, "display", "Display"))
+
 
     /**
      * Removes and returns an event from the event queue, if available.
@@ -241,7 +238,7 @@ package struct MockedEventsSubsystem(E)
     /// Ditto
     private bool _isInited = false;
 
-    /// An event.
+    /// A mocked event.
     public struct Event
     {
         // Disable default constructor so that we can be surer that the
@@ -319,8 +316,6 @@ package struct MockedEventsSubsystem(E)
         /// Mouse button.
         private MouseButton _mouseButton;
 
-        /// Handle of the display with focus when the event happened.
-        private displayHandleType _displayHandle;
 
         //
         // Public access to event data
@@ -401,8 +396,11 @@ package struct MockedEventsSubsystem(E)
             return _keyCode;
         }
 
-        static if (hasMember!(typeof(E.backend), "display"))
+        static if (engineHasMember!(E, "display", "Display"))
         {
+            /// Handle of the display with focus when the event happened.
+            private displayHandleType _displayHandle;
+
             /**
              * Returns the Display which had the focus when the event was
              * generated.
@@ -414,7 +412,7 @@ package struct MockedEventsSubsystem(E)
              * `mouseUp`, `mouseWheelUp`,  `mouseWheelDown`, `displayResize`,
              * `displayExpose`.
              */
-            public @property inout(E.backendType.Display*) display() inout nothrow @nogc
+            public @property inout(E.display.Display*) display() inout nothrow @nogc
             in
             {
                 assert(_type == EventType.keyDown
@@ -460,7 +458,8 @@ package struct MockedEventsSubsystem(E)
             {
                 return _displayHandle;
             }
-        }
+
+        } // static if (engineHasMember!(E, "display", "Display"))
 
         /**
          * Returns the horizontal coordinate of the mouse, in pixels.
@@ -589,90 +588,85 @@ package struct MockedEventsSubsystem(E)
 }
 
 
-
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Tests if the back end subsystem is properly initialized.
-unittest
+version(unittest)
 {
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
-    MockedEventsSubsystem!(Engine!MockedBackend) events;
+    struct TestEngineSimple
+    {
+        mixin EngineCommon;
+        MockedEventsSubsystem!TestEngineSimple events;
+    }
 
-    // Initially, not initialized
-    assert(!events.isInited);
-
-    // Initialize
-    events.initialize(&engine);
-    assert(events.isInited);
-
-    // Multiple initialization shouldn't be a problem
-    events.initialize(&engine);
-    assert(events.isInited);
-    events.initialize(&engine);
-    assert(events.isInited);
-
-    // After shutdown, back end should no longer be considered intialized
-    events.shutdown();
-    assert(!events.isInited);
+    struct TestEngineWithDisplay
+    {
+        mixin EngineCommon;
+        MockedDisplaySubsystem!TestEngineWithDisplay display;
+        MockedEventsSubsystem!TestEngineWithDisplay events;
+    }
 }
 
 
-// Tests `enqueueTickEvent()`
+// Tests initialization and finalization.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
+    MockedEventsSubsystem!TestEngineSimple theEvents;
+    assert(theEvents.isInited == false);
 
-    Engine!MockedBackend engine;
-    MockedEventsSubsystem!(Engine!MockedBackend) events;
+    theEvents.initializeBackend();
+    assert(theEvents.isInited == true);
 
-    events.initialize(&engine);
+    theEvents.shutdownBackend();
+    assert(theEvents.isInited == false);
+}
+
+
+// Tests `enqueueTickEvent()`.
+unittest
+{
+    TestEngineSimple engine;
+    engine.initialize();
 
     // Initially, no events in the queue
-    assert(events.mockedEventQueue.length == 0);
+    assert(engine.events.mockedEventQueue.length == 0);
 
     // Call `enqueueTickEvent()`, check if it works as expected
-    events.enqueueTickEvent(0.2, 0.1);
-    assert(events.mockedEventQueue.length == 1);
+    engine.events.enqueueTickEvent(0.2, 0.1);
+    assert(engine.events.mockedEventQueue.length == 1);
 
-    events.enqueueTickEvent(0.3, 0.35);
-    assert(events.mockedEventQueue.length == 2);
+    engine.events.enqueueTickEvent(0.3, 0.35);
+    assert(engine.events.mockedEventQueue.length == 2);
 
-    assert(events.mockedEventQueue[0].type == EventType.tick);
-    assert(events.mockedEventQueue[0].deltaTimeInSecs == 0.2);
-    assert(events.mockedEventQueue[0].tickTimeInSecs == 0.1);
+    assert(engine.events.mockedEventQueue[0].type == EventType.tick);
+    assert(engine.events.mockedEventQueue[0].deltaTimeInSecs == 0.2);
+    assert(engine.events.mockedEventQueue[0].tickTimeInSecs == 0.1);
 
-    assert(events.mockedEventQueue[1].type == EventType.tick);
-    assert(events.mockedEventQueue[1].deltaTimeInSecs == 0.3);
-    assert(events.mockedEventQueue[1].tickTimeInSecs == 0.35);
+    assert(engine.events.mockedEventQueue[1].type == EventType.tick);
+    assert(engine.events.mockedEventQueue[1].deltaTimeInSecs == 0.3);
+    assert(engine.events.mockedEventQueue[1].tickTimeInSecs == 0.35);
 }
 
 
-// Tests `makeDrawEvent()`
+// Tests `makeDrawEvent()`.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
-    MockedEventsSubsystem!(Engine!MockedBackend) events;
-
-    events.initialize(&engine);
+    TestEngineSimple engine;
+    engine.initialize();
 
     // Call `makeDrawEvent()`, check if it works as expected
-    auto event = events.makeDrawEvent(0.15, 0.2);
+    auto event = engine.events.makeDrawEvent(0.15, 0.2);
 
     assert(event.type == EventType.draw);
     assert(event.drawingTimeInSecs == 0.15);
     assert(event.timeSinceTickInSecs == 0.2);
 
     // Again, again!
-    event = events.makeDrawEvent(0.35, 0.4);
+    event = engine.events.makeDrawEvent(0.35, 0.4);
 
     assert(event.type == EventType.draw);
     assert(event.drawingTimeInSecs == 0.35);
@@ -683,112 +677,100 @@ unittest
 // Create several different events, enqueue and dequeue them.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
+    TestEngineWithDisplay engine;
+    engine.initialize();
 
-    Engine!MockedBackend engine;
-    MockedEventsSubsystem!(Engine!MockedBackend) events;
-
-    events.initialize(&engine);
-
-    alias KeyCode = Engine!MockedBackend.KeyCode;
-    alias MouseButton = Engine!MockedBackend.MouseButton;
-    alias Event = Engine!MockedBackend.Event;
+    alias KeyCode = TestEngineWithDisplay.KeyCode;
+    alias MouseButton = TestEngineWithDisplay.MouseButton;
+    alias Event = TestEngineWithDisplay.Event;
 
     // Create and enqueue events
-    events.mockedEventQueue ~= events.makeTickEvent(0.1, 0.2);
-    events.mockedEventQueue ~= events.makeKeyDownEvent(KeyCode.backspace, 111);
-    events.mockedEventQueue ~= events.makeKeyUpEvent(KeyCode.f5, 222);
-    events.mockedEventQueue ~= events.makeMouseMoveEvent(33, 44, 333);
-    events.mockedEventQueue ~= events.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
-    events.mockedEventQueue ~= events.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
-    events.mockedEventQueue ~= events.makeMouseWheelUpEvent(666);
-    events.mockedEventQueue ~= events.makeMouseWheelDownEvent(777);
+    engine.events.mockedEventQueue ~= engine.events.makeTickEvent(0.1, 0.2);
+    engine.events.mockedEventQueue ~= engine.events.makeKeyDownEvent(KeyCode.backspace, 111);
+    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(KeyCode.f5, 222);
+    engine.events.mockedEventQueue ~= engine.events.makeMouseMoveEvent(33, 44, 333);
+    engine.events.mockedEventQueue ~= engine.events.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
+    engine.events.mockedEventQueue ~= engine.events.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(666);
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelDownEvent(777);
 
     // Dequeue and check events
     auto event = Event(&engine);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.tick);
     assert(event.deltaTimeInSecs == 0.1);
     assert(event.tickTimeInSecs == 0.2);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyDown);
     assert(event.keyCode == KeyCode.backspace);
     assert(event.displayHandle == 111);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyUp);
     assert(event.keyCode == KeyCode.f5);
     assert(event.displayHandle == 222);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseMove);
     assert(event.mouseX == 33);
     assert(event.mouseY == 44);
     assert(event.displayHandle == 333);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseDown);
     assert(event.mouseButton == MouseButton.left);
     assert(event.mouseX == 100);
     assert(event.mouseY == 20);
     assert(event.displayHandle == 444);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseUp);
     assert(event.mouseButton == MouseButton.right);
     assert(event.mouseX == 20);
     assert(event.mouseY == 10);
     assert(event.displayHandle == 555);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseWheelUp);
     assert(event.displayHandle == 666);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseWheelDown);
     assert(event.displayHandle == 777);
 
     // No more events
-    assert(events.dequeueEvent(&event) == false);
+    assert(engine.events.dequeueEvent(&event) == false);
 }
 
-// Test Display events with real Displays
+
+// Test Display events with real Displays.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
+    TestEngineWithDisplay engine;
+    engine.initialize();
 
-    alias Event = Engine!MockedBackend.Event;
-
-    Engine!MockedBackend engine;
-    MockedEventsSubsystem!(Engine!MockedBackend) events;
-
-    events.initialize(&engine);
+    alias Event = TestEngineWithDisplay.Event;
 
     DisplayParams params;
     params.title = "Aigale!";
     auto display = engine.display.create(params);
 
     // Create and enqueue events
-    events.mockedEventQueue ~= events.makeDisplayResizeEvent(display.handle);
-    events.mockedEventQueue ~= events.makeDisplayExposeEvent(display.handle);
+    engine.events.mockedEventQueue ~= engine.events.makeDisplayResizeEvent(display.handle);
+    engine.events.mockedEventQueue ~= engine.events.makeDisplayExposeEvent(display.handle);
 
     // Dequeue and check events
     auto event = Event(&engine);
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.displayResize);
     assert(event.displayHandle == display.handle);
     assert(event.display.title == "Aigale!");
 
-    assert(events.dequeueEvent(&event) == true);
+    assert(engine.events.dequeueEvent(&event) == true);
     assert(event.type == EventType.displayExpose);
     assert(event.displayHandle == display.handle);
     assert(event.display.title == "Aigale!");
 }
-
-+/
-

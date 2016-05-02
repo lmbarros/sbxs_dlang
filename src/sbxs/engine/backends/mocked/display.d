@@ -10,7 +10,6 @@ module sbxs.engine.backends.mocked.display;
 
 import sbxs.engine;
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 /**
  * Mocked implementation of a Display.
@@ -106,20 +105,26 @@ public struct MockedDisplay
         _state.height = newHeight;
     }
 
-    /// Resizes the Display
-    public void resize(E)(E* engine, int width, int height, handleType displayHandle)
+    /**
+     * Simulates a Display resize.
+     *
+     * This willl work only to be used with the Mocked back end components.
+     */
+    public void simulateResize(E)(E* engine, int width, int height, handleType displayHandle)
     {
-        import sbxs.engine.backends.mocked;
-
         // Update the internal state
         _state.width = width;
         _state.height = height;
 
-        // Generate a resize event.
-        static assert(is(typeof(engine._backend) == MockedBackend));
-        auto event = engine._backend.events.makeDisplayResizeEvent(displayHandle);
-
-        engine._backend.events.mockedEventQueue ~= event;
+        // TODO: This could taste more like Design by Introspection. These names
+        //       and interfaces weren't really designed with DbI this in mind.
+        static if (engineHasMember!(E, "events", "makeDisplayResizeEvent")
+            && engineHasMember!(E, "events", "mockedEventQueue"))
+        {
+            // Generate a resize event and enqueue it
+            auto event = engine.events.makeDisplayResizeEvent(displayHandle);
+            engine.events.mockedEventQueue ~= event;
+        }
     }
 
     /// The Display title.
@@ -143,7 +148,8 @@ public struct MockedDisplay
     /**
      * Pretends to swap buffers.
      *
-     * In fact, just increments a counter telling that buffers were swapped.
+     * In fact, just increments a counter telling how many times buffers were
+     * swapped.
      */
     public void swapBuffers() nothrow @nogc
     {
@@ -177,49 +183,24 @@ public struct MockedDisplay
 
 
 /**
- * Mocked Display engine subsystem back end.
+ * Mocked display engine subsystem back end, for testing.
  *
  * Parameters:
  *     E = The type of the engine using this subsystem back end.
  */
 package struct MockedDisplaySubsystem(E)
 {
-    /// The Engine using this subsystem back end.
-    private E* _engine;
-
-    /**
-     * Initializes the subsystem.
-     *
-     * Parameters:
-     *     engine = The engine using this subsystem.
-     */
-    public void initialize(E* engine)
-    in
-    {
-        assert(engine !is null);
-    }
-    body
-    {
-        _engine = engine;
-        _isInited = true;
-    }
+    mixin DisplayCommon!E;
 
     /// Shuts the subsystem down.
-    public void shutdown() nothrow @nogc
+    public void shutdownBackend() nothrow @nogc
     {
         MockedDisplay._currentDisplay = 0;
         MockedDisplay._nextDisplayHandle = 0;
-        _isInited = false;
     }
 
     /// The type used as Display.
     public alias Display = MockedDisplay;
-
-    /// Is the subsystem initialized and ready-to-use?
-    public @property bool isInited() const nothrow @nogc { return _isInited; }
-
-    /// Ditto
-    private bool _isInited = false;
 }
 
 
@@ -228,31 +209,17 @@ package struct MockedDisplaySubsystem(E)
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Test if the back end subsystem is properly initialized.
-unittest
+version(unittest)
 {
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
-    MockedDisplaySubsystem!(Engine!MockedBackend) display;
-
-    // Initially, not initialized
-    assert(!display.isInited);
-
-    // Initialize
-    display.initialize(&engine);
-    assert(display.isInited);
-
-    // Multiple initialization shouldn't be a problem
-    display.initialize(&engine);
-    assert(display.isInited);
-    display.initialize(&engine);
-    assert(display.isInited);
-
-    // After shutdown, back end should no longer be considered intialized
-    display.shutdown();
-    assert(!display.isInited);
+    struct TestEngineWithEvents
+    {
+        mixin EngineCommon;
+        MockedDisplaySubsystem!TestEngineWithEvents display;
+        MockedEventsSubsystem!TestEngineWithEvents events;
+    }
 }
 
 
@@ -360,10 +327,7 @@ unittest
 // Test Display resize.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineWithEvents engine;
     engine.initialize();
 
     DisplayParams params;
@@ -376,16 +340,15 @@ unittest
     assert(display.height == 500);
 
     // Also, be sure that the engine event queue is empty
-    assert(engine._backend.events.mockedEventQueue.length == 0);
+    assert(engine.events.mockedEventQueue.length == 0);
 
     // Resize; check if dimensions changed and event was enqueued
-    display.resize(&engine, 411, 122, display.handle);
+    display.simulateResize(&engine, 411, 122, display.handle);
 
     assert(display.width == 411);
     assert(display.height == 122);
 
-    assert(engine._backend.events.mockedEventQueue.length == 1);
-    assert(engine._backend.events.mockedEventQueue[0].type == EventType.displayResize);
-    assert(engine._backend.events.mockedEventQueue[0].displayHandle == display.handle);
+    assert(engine.events.mockedEventQueue.length == 1);
+    assert(engine.events.mockedEventQueue[0].type == EventType.displayResize);
+    assert(engine.events.mockedEventQueue[0].displayHandle == display.handle);
 }
-+/
