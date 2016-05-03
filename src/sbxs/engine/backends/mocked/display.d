@@ -171,11 +171,17 @@ public struct MockedDisplay
     /// A type for a handle that uniquely identifies a Display.
     public alias handleType = size_t;
 
-    /// The Display currently active. `0` if no Display was created yet.
+    /// A handle different than any valid Display handle.
+    public enum invalidDisplay = 0;
+
+    /**
+     * The Display currently active. `invalidDisplay` if no Display was created
+     * yet.
+     */
     public static handleType currentDisplay() { return _currentDisplay; }
 
     /// Ditto
-    private static handleType _currentDisplay = 0;
+    private static handleType _currentDisplay = invalidDisplay;
 
     /// The handle for the next Display created.
     private static int _nextDisplayHandle = 1;
@@ -196,7 +202,7 @@ package struct MockedDisplaySubsystem(E)
     public void shutdownBackend() nothrow @nogc
     {
         MockedDisplay._currentDisplay = 0;
-        MockedDisplay._nextDisplayHandle = 0;
+        MockedDisplay._nextDisplayHandle = MockedDisplay.invalidDisplay;
     }
 
     /// The type used as Display.
@@ -214,6 +220,12 @@ version(unittest)
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
+    struct TestEngine
+    {
+        mixin EngineCommon;
+        MockedDisplaySubsystem!TestEngine display;
+    }
+
     struct TestEngineWithEvents
     {
         mixin EngineCommon;
@@ -222,6 +234,25 @@ version(unittest)
     }
 }
 
+// Tests if shoutdown resets the current display to an invalid Display.
+unittest
+{
+    DisplayParams params;
+    params.title = "Ceci n'est pas un Display";
+
+    // Create the engine, ensure that the current display is not set
+    TestEngine engine;
+    engine.initialize();
+    assert(MockedDisplay.currentDisplay == MockedDisplay.invalidDisplay);
+
+    // Create a Display; this should set the current display
+    auto display = engine.display.create(params);
+    assert(MockedDisplay.currentDisplay != MockedDisplay.invalidDisplay);
+
+    // Shut down the first engine; the current display shall be reset
+    engine.shutdown();
+    assert(MockedDisplay.currentDisplay == MockedDisplay.invalidDisplay);
+}
 
 // Test Display creation.
 unittest
