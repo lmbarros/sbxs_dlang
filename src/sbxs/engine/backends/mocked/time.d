@@ -21,6 +21,18 @@ package struct MockedTimeSubsystem(E)
 
     mixin TimeCommon!E;
 
+    /// Initializes the subsystem.
+    public void initializeBackend()
+    {
+        _isInited = true;
+    }
+
+    /// Shuts the subsystem down.
+    public void shutdownBackend()
+    {
+        _isInited = false;
+    }
+
     /// Returns the current wall time, in seconds since some unspecified epoch.
     public double getTime()
     {
@@ -93,6 +105,12 @@ package struct MockedTimeSubsystem(E)
 
     /// The current (mocked) time.
     private double _currentTime = 0.0;
+
+    /// Is this back end initialized?
+    public @property bool isInited() const nothrow @nogc { return _isInited; }
+
+    /// Ditto
+    private bool _isInited = false;
 }
 
 
@@ -110,6 +128,20 @@ version(unittest)
         mixin EngineCommon;
         MockedTimeSubsystem!TestEngine time;
     }
+}
+
+
+// Tests initialization and finalization.
+unittest
+{
+    MockedTimeSubsystem!TestEngine time;
+    assert(time.isInited == false);
+
+    time.initializeBackend();
+    assert(time.isInited == true);
+
+    time.shutdownBackend();
+    assert(time.isInited == false);
 }
 
 

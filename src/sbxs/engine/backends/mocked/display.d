@@ -198,15 +198,28 @@ package struct MockedDisplaySubsystem(E)
 {
     mixin DisplayCommon!E;
 
+    /// Initializes the subsystem.
+    public void initializeBackend() nothrow @nogc
+    {
+        _isInited = true;
+    }
+
     /// Shuts the subsystem down.
     public void shutdownBackend() nothrow @nogc
     {
-        MockedDisplay._currentDisplay = 0;
-        MockedDisplay._nextDisplayHandle = MockedDisplay.invalidDisplay;
+        MockedDisplay._currentDisplay = MockedDisplay.invalidDisplay;
+        MockedDisplay._nextDisplayHandle = 1;
+        _isInited = false;
     }
 
     /// The type used as Display.
     public alias Display = MockedDisplay;
+
+    /// Is this back end initialized?
+    public @property bool isInited() const nothrow @nogc { return _isInited; }
+
+    /// Ditto
+    private bool _isInited = false;
 }
 
 
@@ -233,6 +246,21 @@ version(unittest)
         MockedEventsSubsystem!TestEngineWithEvents events;
     }
 }
+
+
+// Tests initialization and finalization.
+unittest
+{
+    MockedDisplaySubsystem!TestEngine display;
+    assert(display.isInited == false);
+
+    display.initializeBackend();
+    assert(display.isInited == true);
+
+    display.shutdownBackend();
+    assert(display.isInited == false);
+}
+
 
 // Tests if shoutdown resets the current display to an invalid Display.
 unittest

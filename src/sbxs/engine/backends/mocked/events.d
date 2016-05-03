@@ -31,12 +31,7 @@ package struct MockedEventsSubsystem(E)
      */
     public Event[] mockedEventQueue;
 
-    /**
-     * Initializes the subsystem.
-     *
-     * Parameters:
-     *     engine = The engine using this subsystem.
-     */
+    /// Initializes the subsystem.
     public void initializeBackend()
     {
         _isInited = true;
