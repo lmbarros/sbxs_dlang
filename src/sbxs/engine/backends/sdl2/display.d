@@ -153,6 +153,16 @@ version(HaveSDL2)
         import std.traits: isPointer;
         static assert(isPointer!SDL_GLContext);
 
+        /**
+         * A handle different than any valid Display handle.
+         *
+         * Er, actually considering that `0` does not seem to be officially
+         * guaranteed (nothing is mentioned in the API documentation), but I
+         * think I saw this on SDL sources (in `src/video/SDL_video.c`,
+         * `SDL_VideoInit()`, it says `_this->next_object_id = 1;`).
+         */
+        public enum invalidDisplay = 0;
+
         /// A type for a handle that uniquely identifies a Display.
         public alias handleType = Uint32;
     }

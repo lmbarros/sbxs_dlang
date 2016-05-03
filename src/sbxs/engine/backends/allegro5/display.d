@@ -142,6 +142,9 @@ version(HaveAllegro5)
         /// The Display title (Allegro does not provide means to read it!).
         private string _title;
 
+        /// A handle different than any valid Display handle.
+        public enum invalidDisplay = null;
+
         /**
          * The Display currently active. `null` if no Display was created yet.
          *
