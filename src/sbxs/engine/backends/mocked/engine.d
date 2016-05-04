@@ -27,3 +27,13 @@ public struct MockedEngine
     /// The time subsystem.
     public MockedTimeSubsystem!MockedEngine time;
 }
+
+
+
+// Just a dummy test, to make this otherwise code-less file appear as 100%
+// covered. I don't want "false negatives" taking my attention instead of real
+// issues.
+unittest
+{
+    assert(true);
+}

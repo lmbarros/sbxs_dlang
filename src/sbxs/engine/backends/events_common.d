@@ -29,3 +29,13 @@ package struct DrawEventData
     /// Time elapsed since the last tick event, in seconds.
     public double timeSinceTickInSecs;
 }
+
+
+
+// Just a dummy test, to make this otherwise code-less file appear as 100%
+// covered. I don't want "false negatives" taking my attention instead of real
+// issues.
+unittest
+{
+    assert(true);
+}
