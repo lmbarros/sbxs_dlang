@@ -41,38 +41,35 @@ public mixin template TimeCommon(E)
     }
 
     /// Shuts the subsystem down.
-    void shutdown() { }
+    package(sbxs.engine) void shutdown() { }
 }
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Tests `getTime()` and `sleep()`.
+// Just check if we can really `mixin` this into a dummy structure. (This is
+// really tested by the mocked backend tests.)
 unittest
 {
     import sbxs.engine;
-    import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
+    struct DummyEngine { }
 
-    engine.initialize();
+    struct DummyTime
+    {
+        mixin TimeCommon!DummyEngine;
+    }
 
-    assert(engine.time.getTime() == 0.0);
-    assert(engine.time.getTime() == 0.0);
+    DummyEngine engine;
+    DummyTime timeSS;
 
-    engine.time.sleep(1.0);
+    timeSS.initialize(&engine);
 
-    assert(engine.time.getTime() == 1.0);
+    assert(timeSS._engine == &engine);
 
-    engine.time.sleep(1.0);
-    engine.time.sleep(10.0);
-    engine.time.sleep(1.0);
-
-    assert(engine.time.getTime() == 13.0);
-    assert(engine.time.getTime() == 13.0);
+    timeSS.shutdown();
 }
 
-+/

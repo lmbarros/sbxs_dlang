@@ -311,21 +311,39 @@ public mixin template EventsCommon(E)
     private EventHandlerEntry[] _handlers;
 }
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Simple event handling test.
-unittest
+version(unittest)
 {
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
+    struct TestEngineSimple
+    {
+        mixin EngineCommon;
+        MockedEventsSubsystem!TestEngineSimple events;
+    }
+
+    struct TestEngineWithDisplay
+    {
+        mixin EngineCommon;
+        MockedDisplaySubsystem!TestEngineWithDisplay display;
+        MockedEventsSubsystem!TestEngineWithDisplay events;
+    }
+}
+
+
+// Simple event handling test.
+unittest
+{
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -339,7 +357,7 @@ unittest
     assert(handlerRan == false); // sanity check
 
     // Call handlers
-    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+    auto event = engine.events.makeTickEvent(0.2, 0.4);
     engine.events.callEventHandlers(&event);
     assert(handlerRan == true);
 }
@@ -348,16 +366,15 @@ unittest
 // Checks if `callEventHandlers()` returns the expected value.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
     // First, with a single event handler that returns `false`
-    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+    auto event = engine.events.makeTickEvent(0.2, 0.4);
 
     engine.events.addHandler((Event* event) => false, 0);
     assert(engine.events.callEventHandlers(&event) == false);
@@ -371,11 +388,10 @@ unittest
 // Checks if multiple event handlers are called in the correct, priority-based order.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -383,7 +399,7 @@ unittest
     bool secondRan = false;
     bool thirdRan = false;
 
-    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+    auto event = engine.events.makeTickEvent(0.2, 0.4);
 
     // Add handler with priority 2; will hopefully be the second to be called
     engine.events.addHandler(
@@ -441,18 +457,17 @@ unittest
 // tests `removeHandler()`.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
     bool firstRan = false;
     bool secondRan = false;
 
-    auto event = engine.backend.events.makeTickEvent(0.2, 0.4);
+    auto event = engine.events.makeTickEvent(0.2, 0.4);
 
     // First handler, returns `true`.
     auto firstHandler = delegate(Event* event)
@@ -491,11 +506,10 @@ unittest
 // Tests `tick()` generates a Tick event
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -529,11 +543,10 @@ unittest
 // Tests `tick()` calls the event handlers for the enqueued input events.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineWithDisplay engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
     alias KeyCode = typeof(engine).KeyCode;
@@ -572,11 +585,11 @@ unittest
     // Simulate some input events, call `tick()` again
     enum fakeDisplayHandle = 1;
 
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(
         KeyCode.a, fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(
         KeyCode.b, fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(
         fakeDisplayHandle);
 
     engine.events.tick(0.1);
@@ -585,15 +598,15 @@ unittest
     assert(numKeyUps == 2);
 
     // Agaaaain, agaaaain
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(
         fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(
         fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(
         KeyCode.a, fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeMouseWheelUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(
         fakeDisplayHandle);
-    engine.backend.events.mockedEventQueue ~= engine.backend.events.makeKeyUpEvent(
+    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(
         KeyCode.b, fakeDisplayHandle);
 
     engine.events.tick(0.1);
@@ -612,11 +625,10 @@ unittest
 // Tests if `tick()` makes the time pass.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -651,11 +663,10 @@ unittest
 // Tests if `draw()` generates calls Draw event handlers.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -689,11 +700,10 @@ unittest
 // Tests if `draw()` advances the time as expected.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     alias Event = typeof(engine).Event;
 
@@ -762,11 +772,10 @@ unittest
 // Tests if `draw()` swaps buffers for all Displays.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineWithDisplay engine;
     engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     // Create two Displays
     DisplayParams params;
@@ -805,4 +814,3 @@ unittest
     assert(display2.swapBuffersCount == 6);
     assert(display3.swapBuffersCount == 3);
 }
-+/
