@@ -22,13 +22,13 @@ package struct MockedTimeSubsystem(E)
     mixin TimeCommon!E;
 
     /// Initializes the subsystem.
-    public void initializeBackend()
+    package(sbxs.engine) void initializeBackend()
     {
         _isInited = true;
     }
 
     /// Shuts the subsystem down.
-    public void shutdownBackend()
+    package(sbxs.engine) void shutdownBackend()
     {
         _isInited = false;
     }

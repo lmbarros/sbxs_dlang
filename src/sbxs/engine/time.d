@@ -30,7 +30,7 @@ public mixin template TimeCommon(E)
      * Parameters:
      *     engine = The engine being used.
      */
-    void initialize(E* engine)
+    package(sbxs.engine) void initialize(E* engine)
     in
     {
         assert(engine !is null);

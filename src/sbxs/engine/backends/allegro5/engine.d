@@ -55,22 +55,22 @@ version(HaveAllegro5)
         mixin EngineCommon;
 
         /// The display subsystem.
-        Allegro5DisplaySubsystem!Allegro5Engine display;
+        public Allegro5DisplaySubsystem!Allegro5Engine display;
 
         /// The events subsystem.
-        Allegro5EventsSubsystem!Allegro5Engine events;
+        public Allegro5EventsSubsystem!Allegro5Engine events;
 
         /// The time subsystem.
-        Allegro5TimeSubsystem!Allegro5Engine time;
+        public Allegro5TimeSubsystem!Allegro5Engine time;
 
         /// Initializes the Allegro 5 library.
-        void initializeBackend()
+        package(sbxs.engine) void initializeBackend()
         {
             initializeAllegro5();
         }
 
         /// Shuts the Allegro 5 library down.
-        void shutdownBackend()
+        package(sbxs.engine)void shutdownBackend()
         {
             shutdownAllegro5();
         }

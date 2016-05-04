@@ -132,7 +132,7 @@ public mixin template DisplayCommon(E)
      * Parameters:
      *     engine = The engine being used.
      */
-    package void initialize(E* engine)
+    package(sbxs.engine) void initialize(E* engine)
     in
     {
         assert(engine !is null);
@@ -144,7 +144,7 @@ public mixin template DisplayCommon(E)
     }
 
     /// Shuts the subsystem down.
-    package void shutdown()
+    package(sbxs.engine) void shutdown()
     {
         foreach (ref display; _displaysByHandle)
             display.destroy();

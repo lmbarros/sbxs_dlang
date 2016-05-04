@@ -32,7 +32,7 @@ version(HaveAllegro5)
          * This is called from `EventsCommon`, in a compile-time version of the
          * factory method design pattern.
          */
-        public void initializeBackend()
+        package(sbxs.engine) void initializeBackend()
         {
             // Initialize the required Allegro subsystems
             if (!al_install_keyboard())
@@ -97,7 +97,7 @@ version(HaveAllegro5)
         }
 
         /// Shuts the subsystem down.
-        public void shutdownBackend()
+        package(sbxs.engine) void shutdownBackend()
         {
             // Remove the event sources
             al_unregister_event_source(_eventQueue, al_get_joystick_event_source());

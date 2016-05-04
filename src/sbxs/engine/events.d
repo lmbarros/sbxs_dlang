@@ -100,7 +100,7 @@ public mixin template EventsCommon(E)
      * Parameters:
      *     engine = The engine being used.
      */
-    void initialize(E* engine)
+    package(sbxs.engine) void initialize(E* engine)
     in
     {
         assert(engine !is null);
@@ -112,7 +112,7 @@ public mixin template EventsCommon(E)
     }
 
     /// Shuts the subsystem down.
-    void shutdown()
+    package(sbxs.engine) void shutdown()
     {
         mixin(smCallIfMemberExists("shutdownBackend"));
     }
@@ -182,7 +182,7 @@ public mixin template EventsCommon(E)
      * Parameters:
      *     event = The event to be handled.
      */
-    private bool callEventHandlers(Event* event)
+    package(sbxs.engine) bool callEventHandlers(Event* event)
     {
         auto eventAlreadyHandled = false;
 

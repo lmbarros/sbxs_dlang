@@ -39,7 +39,7 @@ version(HaveSDL2)
          * This is called from `EventsCommon`, in a compile-time version of the
          * factory method design pattern.
          */
-        public void initializeBackend()
+        package(sbxs.engine) void initializeBackend()
         in
         {
             assert(_engine !is null);
@@ -65,7 +65,7 @@ version(HaveSDL2)
         }
 
         /// Shuts the subsystem down.
-        public void shutdownBackend()
+        package(sbxs.engine) void shutdownBackend()
         {
             // Shut down the SDL events subsystem
             SDL_QuitSubSystem(SDL_INIT_EVENTS);

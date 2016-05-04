@@ -182,7 +182,7 @@ version(HaveSDL2)
         public alias Display = SDL2Display;
 
         /// Initializes the subsystem.
-        public void initializeBackend()
+        package(sbxs.engine) void initializeBackend()
         in
         {
             assert(_engine !is null);
@@ -196,7 +196,7 @@ version(HaveSDL2)
         }
 
         /// Shuts the subsystem down.
-        public void shutdownBackend() nothrow @nogc
+        package(sbxs.engine) void shutdownBackend() nothrow @nogc
         {
             SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }

@@ -199,13 +199,13 @@ package struct MockedDisplaySubsystem(E)
     mixin DisplayCommon!E;
 
     /// Initializes the subsystem.
-    public void initializeBackend() nothrow @nogc
+    package(sbxs.engine) void initializeBackend() nothrow @nogc
     {
         _isInited = true;
     }
 
     /// Shuts the subsystem down.
-    public void shutdownBackend() nothrow @nogc
+    package(sbxs.engine) void shutdownBackend() nothrow @nogc
     {
         MockedDisplay._currentDisplay = MockedDisplay.invalidDisplay;
         MockedDisplay._nextDisplayHandle = 1;

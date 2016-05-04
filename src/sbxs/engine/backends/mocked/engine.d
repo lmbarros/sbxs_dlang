@@ -19,11 +19,11 @@ public struct MockedEngine
     mixin EngineCommon;
 
     /// The display subsystem.
-    MockedDisplaySubsystem!MockedEngine display;
+    public MockedDisplaySubsystem!MockedEngine display;
 
     /// The events subsystem.
-    MockedEventsSubsystem!MockedEngine events;
+    public MockedEventsSubsystem!MockedEngine events;
 
     /// The time subsystem.
-    MockedTimeSubsystem!MockedEngine time;
+    public MockedTimeSubsystem!MockedEngine time;
 }
