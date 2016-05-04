@@ -134,14 +134,14 @@ version(unittest)
 // Tests initialization and finalization.
 unittest
 {
-    MockedTimeSubsystem!TestEngine time;
-    assert(time.isInited == false);
+    MockedTimeSubsystem!TestEngine timeSS;
+    assert(timeSS.isInited == false);
 
-    time.initializeBackend();
-    assert(time.isInited == true);
+    timeSS.initializeBackend();
+    assert(timeSS.isInited == true);
 
-    time.shutdownBackend();
-    assert(time.isInited == false);
+    timeSS.shutdownBackend();
+    assert(timeSS.isInited == false);
 }
 
 
@@ -152,41 +152,41 @@ unittest
 
     enum epsilon = 1e-7;
 
-    TestEngine engine;
-    engine.initialize();
+    MockedTimeSubsystem!TestEngine timeSS;
+    timeSS.initializeBackend();
 
-    engine.time.mockedTickIncrements = [ 0.1, 0.2, 0.1, 0.2 ];
-    engine.time.mockedDrawIncrements = [ 0.4, 0.5 ];
+    timeSS.mockedTickIncrements = [ 0.1, 0.2, 0.1, 0.2 ];
+    timeSS.mockedDrawIncrements = [ 0.4, 0.5 ];
 
     // Time should be zero initially
-    assert(engine.time.getTime() == 0.0);
+    assert(timeSS.getTime() == 0.0);
 
     // Pass time manually
-    engine.time.sleep(1.0);
-    assertClose(engine.time.getTime(), 1.0, epsilon);
+    timeSS.sleep(1.0);
+    assertClose(timeSS.getTime(), 1.0, epsilon);
 
     // Pass time via calls to `onEndDraw()` and `onEndTick()`
-    engine.time.onEndTick();
-    assertClose(engine.time.getTime(), 1.1, epsilon);
+    timeSS.onEndTick();
+    assertClose(timeSS.getTime(), 1.1, epsilon);
 
-    engine.time.onEndTick();
-    assertClose(engine.time.getTime(), 1.3, epsilon);
+    timeSS.onEndTick();
+    assertClose(timeSS.getTime(), 1.3, epsilon);
 
-    engine.time.onEndDraw();
-    assertClose(engine.time.getTime(), 1.7, epsilon);
+    timeSS.onEndDraw();
+    assertClose(timeSS.getTime(), 1.7, epsilon);
 
-    engine.time.onEndTick();
-    assertClose(engine.time.getTime(), 1.8, epsilon);
+    timeSS.onEndTick();
+    assertClose(timeSS.getTime(), 1.8, epsilon);
 
-    engine.time.onEndTick();
-    assertClose(engine.time.getTime(), 2.0, epsilon);
+    timeSS.onEndTick();
+    assertClose(timeSS.getTime(), 2.0, epsilon);
 
-    engine.time.onEndDraw();
-    assertClose(engine.time.getTime(), 2.5, epsilon);
+    timeSS.onEndDraw();
+    assertClose(timeSS.getTime(), 2.5, epsilon);
 
     // We should be out of "times" now
     import core.exception;
     import std.exception;
-    assertThrown!AssertError(engine.time.onEndTick());
-    assertThrown!AssertError(engine.time.onEndDraw());
+    assertThrown!AssertError(timeSS.onEndTick());
+    assertThrown!AssertError(timeSS.onEndDraw());
 }

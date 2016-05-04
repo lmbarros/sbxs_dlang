@@ -610,58 +610,60 @@ version(unittest)
 // Tests initialization and finalization.
 unittest
 {
-    MockedEventsSubsystem!TestEngineSimple theEvents;
-    assert(theEvents.isInited == false);
+    MockedEventsSubsystem!TestEngineSimple eventsSS;
+    assert(eventsSS.isInited == false);
 
-    theEvents.initializeBackend();
-    assert(theEvents.isInited == true);
+    eventsSS.initializeBackend();
+    assert(eventsSS.isInited == true);
 
-    theEvents.shutdownBackend();
-    assert(theEvents.isInited == false);
+    eventsSS.shutdownBackend();
+    assert(eventsSS.isInited == false);
 }
 
 
 // Tests `enqueueTickEvent()`.
 unittest
 {
-    TestEngineSimple engine;
-    engine.initialize();
+    MockedEventsSubsystem!TestEngineSimple eventsSS;
+    eventsSS.initializeBackend();
+    eventsSS._engine = cast(TestEngineSimple*)171; // fake engine
 
     // Initially, no events in the queue
-    assert(engine.events.mockedEventQueue.length == 0);
+    assert(eventsSS.mockedEventQueue.length == 0);
 
     // Call `enqueueTickEvent()`, check if it works as expected
-    engine.events.enqueueTickEvent(0.2, 0.1);
-    assert(engine.events.mockedEventQueue.length == 1);
+    eventsSS.enqueueTickEvent(0.2, 0.1);
+    assert(eventsSS.mockedEventQueue.length == 1);
 
-    engine.events.enqueueTickEvent(0.3, 0.35);
-    assert(engine.events.mockedEventQueue.length == 2);
+    eventsSS.enqueueTickEvent(0.3, 0.35);
+    assert(eventsSS.mockedEventQueue.length == 2);
 
-    assert(engine.events.mockedEventQueue[0].type == EventType.tick);
-    assert(engine.events.mockedEventQueue[0].deltaTimeInSecs == 0.2);
-    assert(engine.events.mockedEventQueue[0].tickTimeInSecs == 0.1);
+    assert(eventsSS.mockedEventQueue[0].type == EventType.tick);
+    assert(eventsSS.mockedEventQueue[0].deltaTimeInSecs == 0.2);
+    assert(eventsSS.mockedEventQueue[0].tickTimeInSecs == 0.1);
 
-    assert(engine.events.mockedEventQueue[1].type == EventType.tick);
-    assert(engine.events.mockedEventQueue[1].deltaTimeInSecs == 0.3);
-    assert(engine.events.mockedEventQueue[1].tickTimeInSecs == 0.35);
+    assert(eventsSS.mockedEventQueue[1].type == EventType.tick);
+    assert(eventsSS.mockedEventQueue[1].deltaTimeInSecs == 0.3);
+    assert(eventsSS.mockedEventQueue[1].tickTimeInSecs == 0.35);
 }
 
 
 // Tests `makeDrawEvent()`.
 unittest
 {
-    TestEngineSimple engine;
-    engine.initialize();
+    MockedEventsSubsystem!TestEngineSimple eventsSS;
+    eventsSS.initializeBackend();
+    eventsSS._engine = cast(TestEngineSimple*)171; // fake engine
 
     // Call `makeDrawEvent()`, check if it works as expected
-    auto event = engine.events.makeDrawEvent(0.15, 0.2);
+    auto event = eventsSS.makeDrawEvent(0.15, 0.2);
 
     assert(event.type == EventType.draw);
     assert(event.drawingTimeInSecs == 0.15);
     assert(event.timeSinceTickInSecs == 0.2);
 
     // Again, again!
-    event = engine.events.makeDrawEvent(0.35, 0.4);
+    event = eventsSS.makeDrawEvent(0.35, 0.4);
 
     assert(event.type == EventType.draw);
     assert(event.drawingTimeInSecs == 0.35);
@@ -672,71 +674,72 @@ unittest
 // Create several different events, enqueue and dequeue them.
 unittest
 {
-    TestEngineWithDisplay engine;
-    engine.initialize();
+    MockedEventsSubsystem!TestEngineWithDisplay eventsSS;
+    eventsSS.initializeBackend();
+    eventsSS._engine = cast(TestEngineWithDisplay*)171; // fake engine
 
     alias KeyCode = TestEngineWithDisplay.KeyCode;
     alias MouseButton = TestEngineWithDisplay.MouseButton;
     alias Event = TestEngineWithDisplay.Event;
 
     // Create and enqueue events
-    engine.events.mockedEventQueue ~= engine.events.makeTickEvent(0.1, 0.2);
-    engine.events.mockedEventQueue ~= engine.events.makeKeyDownEvent(KeyCode.backspace, 111);
-    engine.events.mockedEventQueue ~= engine.events.makeKeyUpEvent(KeyCode.f5, 222);
-    engine.events.mockedEventQueue ~= engine.events.makeMouseMoveEvent(33, 44, 333);
-    engine.events.mockedEventQueue ~= engine.events.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
-    engine.events.mockedEventQueue ~= engine.events.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
-    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelUpEvent(666);
-    engine.events.mockedEventQueue ~= engine.events.makeMouseWheelDownEvent(777);
+    eventsSS.mockedEventQueue ~= eventsSS.makeTickEvent(0.1, 0.2);
+    eventsSS.mockedEventQueue ~= eventsSS.makeKeyDownEvent(KeyCode.backspace, 111);
+    eventsSS.mockedEventQueue ~= eventsSS.makeKeyUpEvent(KeyCode.f5, 222);
+    eventsSS.mockedEventQueue ~= eventsSS.makeMouseMoveEvent(33, 44, 333);
+    eventsSS.mockedEventQueue ~= eventsSS.makeMouseDownEvent(MouseButton.left, 100, 20, 444);
+    eventsSS.mockedEventQueue ~= eventsSS.makeMouseUpEvent(MouseButton.right, 20, 10, 555);
+    eventsSS.mockedEventQueue ~= eventsSS.makeMouseWheelUpEvent(666);
+    eventsSS.mockedEventQueue ~= eventsSS.makeMouseWheelDownEvent(777);
 
     // Dequeue and check events
-    auto event = Event(&engine);
+    auto event = Event(cast(TestEngineWithDisplay*)171);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.tick);
     assert(event.deltaTimeInSecs == 0.1);
     assert(event.tickTimeInSecs == 0.2);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyDown);
     assert(event.keyCode == KeyCode.backspace);
     assert(event.displayHandle == 111);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.keyUp);
     assert(event.keyCode == KeyCode.f5);
     assert(event.displayHandle == 222);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseMove);
     assert(event.mouseX == 33);
     assert(event.mouseY == 44);
     assert(event.displayHandle == 333);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseDown);
     assert(event.mouseButton == MouseButton.left);
     assert(event.mouseX == 100);
     assert(event.mouseY == 20);
     assert(event.displayHandle == 444);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseUp);
     assert(event.mouseButton == MouseButton.right);
     assert(event.mouseX == 20);
     assert(event.mouseY == 10);
     assert(event.displayHandle == 555);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseWheelUp);
     assert(event.displayHandle == 666);
 
-    assert(engine.events.dequeueEvent(&event) == true);
+    assert(eventsSS.dequeueEvent(&event) == true);
     assert(event.type == EventType.mouseWheelDown);
     assert(event.displayHandle == 777);
 
     // No more events
-    assert(engine.events.dequeueEvent(&event) == false);
+    assert(eventsSS.dequeueEvent(&event) == false);
 }
 
 

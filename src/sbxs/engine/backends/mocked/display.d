@@ -262,7 +262,7 @@ unittest
 }
 
 
-// Tests if shoutdown resets the current display to an invalid Display.
+// Tests if shutdown resets the current display to an invalid Display.
 unittest
 {
     DisplayParams params;
