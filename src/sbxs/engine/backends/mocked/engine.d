@@ -18,6 +18,18 @@ public struct MockedEngine
 
     mixin EngineCommon;
 
+    /// Initializes the engine back end.
+    package(sbxs.engine) void initializeBackend()
+    {
+        _isInited = true;
+    }
+
+    /// Shuts the engine back end down.
+    package(sbxs.engine) void shutdownBackend()
+    {
+        _isInited = false;
+    }
+
     /// The display subsystem.
     public MockedDisplaySubsystem!MockedEngine display;
 
@@ -26,14 +38,25 @@ public struct MockedEngine
 
     /// The time subsystem.
     public MockedTimeSubsystem!MockedEngine time;
+
+    /// Is this back end initialized?
+    public @property bool isInited() const nothrow @nogc { return _isInited; }
+
+    /// Ditto
+    private bool _isInited = false;
 }
 
 
 
-// Just a dummy test, to make this otherwise code-less file appear as 100%
-// covered. I don't want "false negatives" taking my attention instead of real
-// issues.
+// Tests initialization and finalization.
 unittest
 {
-    assert(true);
+    MockedEngine engine;
+    assert(engine.isInited == false);
+
+    engine.initializeBackend();
+    assert(engine.isInited == true);
+
+    engine.shutdownBackend();
+    assert(engine.isInited == false);
 }
