@@ -45,8 +45,11 @@ mixin template EngineCommon()
      */
     public void initialize()
     {
+        // Initialize the backend parts of the engine
         mixin(smCallIfMemberExists("initializeBackend"));
 
+        // Initialize the subsystem themselves (each one will initialize its
+        // back end as needed)
         static if (engineHasMember!(typeof(this), "time", "initialize"))
             time.initialize(&this);
 
@@ -105,8 +108,6 @@ mixin template EngineCommon()
 
 
 
-/+
-
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
@@ -117,20 +118,22 @@ unittest
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
+    MockedEngine engine;
 
     // Before initializing the engine itself, nothing is initialized.
-    assert(engine.backend.isInited == false);
-    assert(engine.backend.display.isInited == false);
-    assert(engine.backend.events.isInited == false);
-    assert(engine.backend.time.isInited == false);
+    assert(engine.isInited == false);
+    assert(engine.display.isInited == false);
+    assert(engine.events.isInited == false);
+    assert(engine.time.isInited == false);
 
     // Now initialize -- hopefully, everything
     engine.initialize();
-    assert(engine.backend.isInited == true);
-    assert(engine.backend.display.isInited == true);
-    assert(engine.backend.events.isInited == true);
-    assert(engine.backend.time.isInited == true);
-}
 
-+/
+    assert(engine.isInited == true);
+    assert(engine.display.isInited == true);
+    assert(engine.events.isInited == true);
+    assert(engine.time.isInited == true);
+
+    // Engine hygiene
+    engine.shutdown();
+}

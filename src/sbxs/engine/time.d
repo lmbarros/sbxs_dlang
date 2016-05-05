@@ -38,6 +38,7 @@ public mixin template TimeCommon(E)
     body
     {
         _engine = engine;
+        mixin(smCallIfMemberExists("initializeBackend"));
     }
 
     /// Shuts the subsystem down.
@@ -72,4 +73,3 @@ unittest
 
     timeSS.shutdown();
 }
-
