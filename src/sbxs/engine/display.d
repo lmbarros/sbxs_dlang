@@ -183,7 +183,7 @@ public mixin template DisplayCommon(E)
     }
 
     /// Swap the buffers of all Displays.
-    package void swapAllBuffers()
+    package(sbxs.engine) void swapAllBuffers()
     {
         foreach (ref display; _displaysByHandle)
             display.swapBuffers();
@@ -194,19 +194,31 @@ public mixin template DisplayCommon(E)
 }
 
 
-/+ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 // -----------------------------------------------------------------------------
 // Unit tests
 // -----------------------------------------------------------------------------
 
-// Tests if all Displays are destroyed once the subsystem is shut down.
-unittest
+version(unittest)
 {
     import sbxs.engine;
     import sbxs.engine.backends.mocked;
 
-    Engine!MockedBackend engine;
+    struct TestEngineSimple
+    {
+        mixin EngineCommon;
+        MockedDisplaySubsystem!TestEngineSimple display;
+    }
+}
+
+
+// Tests if all Displays are destroyed once the subsystem is shut down.
+unittest
+{
+    TestEngineSimple engine;
+    engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     DisplayParams params;
     auto d1 = engine.display.create(params);
@@ -238,13 +250,13 @@ unittest
 }
 
 
-// Tests `swapAllBuffers().
+// Tests `swapAllBuffers()`.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
+    engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     // Create a pair of Displays
     DisplayParams params;
@@ -274,13 +286,13 @@ unittest
 }
 
 
-// Tests `displayFromHandle().
+// Tests `displayFromHandle()`.
 unittest
 {
-    import sbxs.engine;
-    import sbxs.engine.backends.mocked;
-
-    Engine!MockedBackend engine;
+    TestEngineSimple engine;
+    engine.initialize();
+    scope(exit)
+        engine.shutdown();
 
     // Create some Displays
     DisplayParams params;
@@ -303,4 +315,3 @@ unittest
     const invalidHandle = d3.handle + 999;
     assert(engine.display.displayFromHandle(invalidHandle) is null);
 }
-+/
