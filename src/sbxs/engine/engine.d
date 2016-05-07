@@ -5,19 +5,17 @@
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.
- *
- * TODO: Add `@nogc`, `nothrow` and friends. Or maybe just templatize
- *     everything.
  */
 
 module sbxs.engine.engine;
 
 
 /**
- * Common implementation of an Engine.
+ * Common implementation of an Engine -- this is the engine front end, so to
+ * say.
  *
- * Mix this in in your own implementation, implement the required methods (and
- * the desired optional ones) and you should obtain a working subsystem.
+ * Mix this in in your own implementation, implement the desired optional
+ * members (see below) and you should obtain a working engine.
  *
  * Unlike many implementations of game engines we have nowadays, this
  * is not meant to be a singleton. I don't know why one would want to have
@@ -32,10 +30,41 @@ module sbxs.engine.engine;
  * Concerning thread safety: it's probably a good idea to make all calls to
  * engine methods from the same thread. Some things may work when called
  * from other threads, but better safe than sorry.
+ *
+ * Notes_for_back_end_implementers:
+ *
+ * Nothing is required for an engine, though an "empty" engine is not much
+ * fun (it will not do anything). The optional members are listed below.
+ *
+ * $(UL
+ *     $(LI `void initializeBackend()`: Performs any back end-specific
+ *         initialization. Note that each subsystem has its own initialization
+ *         routine, and you should use those when the initialization at hand
+ *         is specific for that subsystem.)
+ *
+ *     $(LI `void shutdownBackend()`: Just like `initializeBackend()`, but for
+ *         finalization.)
+ *
+ *     $(LI `time`: A member variable implementing a Time subsystem, which is
+ *         responsible for, er, timing stuff. While timing can be seen
+ *         everywhere in the Engine code, all timing information is explicitly
+ *         passed to it in the main loop, via calls to `engine.events.tick()`
+ *         and `engine.events.draw()`. The services provided by the Time
+ *         subsystem are merely conveniences, so to say. (Perhaps, then, it
+ *         should not be considered a full-blown subsystem.))
+ *
+ *     $(LI `events`: A member variable implementing an Events subsystem,
+ *         responsible for implementing an event queue and filling this queue
+ *         with input events.)
+ *
+ *     $(LI `display`: A member variable implementing a Display subsystem,
+ *         reponsible for creating and managing Displays, which are visible
+ *         areas where things can be drawn.)
+ * )
  */
 mixin template EngineCommon()
 {
-    // Engine cannot be copied.
+    // Engines cannot be copied.
     @disable this(this);
 
     /**
@@ -49,7 +78,7 @@ mixin template EngineCommon()
         mixin(smCallIfMemberExists("initializeBackend"));
 
         // Initialize the subsystem themselves (each one will initialize its
-        // back end as needed)
+        // own back end as needed)
         static if (engineHasMember!(typeof(this), "time", "initialize"))
             time.initialize(&this);
 

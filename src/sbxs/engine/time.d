@@ -11,13 +11,35 @@ module sbxs.engine.time;
 /**
  * Common implementation of the time engine subsystem.
  *
- * Mix this in your own implementation, implement the required methods (and the
+ * Mix this in your own implementation, implement the required members (and the
  * desired optional ones) and you should obtain a working subsystem.
  *
  * This provides services related with (you guessed it!) time.
  *
  * Parameters:
  *     E = The type of the engine being used.
+ *
+ * Notes_for_back_end_implementers:
+ *
+ * The following members are required:
+ *
+ * $(UL
+ *     $(LI `double getTime()`: Returns the current wall time, in seconds,
+ *         since the engine initialization.)
+ *
+ *     $(LI `void sleep(double timeInSecs)`: Sleeps the calling thread for
+ *         `timeInSecs` seconds.)
+ * )
+ *
+ * And these are optional:
+ *
+ * $(UL
+ *     $(LI `void initializeBackend()`: Performs any back end-specific
+ *         initialization for this subsystem.)
+ *
+ *     $(LI `void shutdownBackend()`: Just like `initializeBackend()`, but for
+ *         finalization.)
+ * )
  */
 public mixin template TimeCommon(E)
 {

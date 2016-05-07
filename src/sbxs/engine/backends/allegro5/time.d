@@ -24,7 +24,10 @@ version(HaveAllegro5)
 
         mixin TimeCommon!E;
 
-        /// Returns the current wall time, in seconds since some unspecified epoch.
+        /**
+         * Returns the current wall time, in seconds, since the engine
+         * initialization.
+         */
         public double getTime()
         {
             return al_get_time();

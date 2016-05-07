@@ -46,7 +46,6 @@ public enum WindowingMode
  * and `height` are ignored for a Display created as
  * `WindowingMode.fakeFullScreen`.).
  */
-
 public struct DisplayParams
 {
     /// Create as window, in full screen, or something else?
@@ -110,7 +109,7 @@ public struct DisplayParams
 /**
  * Common implementation of the Display engine subsystem.
  *
- * Mix this in your own implementation, implement the required methods (and the
+ * Mix this in your own implementation, implement the required members (and the
  * desired optional ones) and you should obtain a working subsystem.
  *
  * Provides services related to Displays, which are places where things can be
@@ -118,6 +117,62 @@ public struct DisplayParams
  *
  * Parameters:
  *     E = The type of the engine being used.
+ *
+ * Notes_for_back_end_implementers:
+ *
+ * The following members are required:
+ *
+ * $(UL
+ *     $(LI `Display`: A type implementing a Display (see below).)
+ * )
+ *
+ * And these are optional:
+ *
+ * $(UL
+ *     $(LI `void initializeBackend()`: Performs any back end-specific
+ *         initialization for this subsystem.)
+ *
+ *     $(LI `void shutdownBackend()`: Just like `initializeBackend()`, but for
+ *         finalization.)
+ * )
+ *
+ * A valid Display type must implement the following members:
+ *
+ * $(UL
+ *     $(LI `this(DisplayParams params)`: Constructs the Display, respecting as
+ *         much as possible the charactertics requested in `params`.)
+ *
+ *     $(LI `void destroy()`: Destroys the Display, releasing all of its
+ *         resources.)
+ *
+ *     $(LI `int width`: The Display width, in pixels. Read only.)
+ *
+ *     $(LI `int height`: The Display width, in pixels. Read only.)
+ *
+ *     $(LI `string title`: The Display title (typically used as the label on
+ *         the window title bar). Read only.)
+ *
+ *     $(LI `void makeCurrent()`: Makes the Display the current target for
+ *         rendering.)
+ *
+ *     $(LI `handleType`: A cheaply copiable type, representing a handle that
+ *         uniquely identifies a Display.)
+ *
+ *     $(LI `handleType handle`: The handle that uniquely identifies this
+ *         Display.)
+ *
+ *     $(LI `handleType invalidDisplay`: A handle that is different than any
+ *         valid Display handle. This of it as the `null` of `handleType`s.
+ *         Likely to be an `enum` or `static`.)
+ * )
+ *
+ * And a Display can optionaly implement this one:
+ *
+ * $(UL
+ *     $(LI `void swapBuffers()`: Assuming that some double buffering scheme
+ *         is neing used, swaps the front and back buffers so that newly draw
+ *         things become visible.)
+ * )
  */
 public mixin template DisplayCommon(E)
 {
