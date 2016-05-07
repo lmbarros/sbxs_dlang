@@ -43,6 +43,8 @@ module sbxs.engine.time;
  */
 public mixin template TimeCommon(E)
 {
+    import sbxs.engine.dbi;
+
     /// The engine being used.
     private E* _engine;
 
