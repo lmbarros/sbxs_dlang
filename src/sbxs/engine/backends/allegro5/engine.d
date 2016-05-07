@@ -26,7 +26,15 @@ version(HaveAllegro5)
         import derelict.opengl3.gl3;
 
         // General back end initialization
-        DerelictAllegro5.load();
+        try
+        {
+            DerelictAllegro5.load();
+        }
+        catch(Exception e)
+        {
+            throw new BackendException("Error loading the Allegro 5 library: "
+            ~ e.msg);
+        }
 
         const success = al_install_system(ALLEGRO_VERSION_INT, null);
         if (!success)

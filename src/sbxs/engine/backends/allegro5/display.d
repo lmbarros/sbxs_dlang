@@ -76,7 +76,15 @@ version(HaveAllegro5)
 
             // Now that we have a context, we can reload the OpenGL bindings, and
             // we'll get all the OpenGL 3+ stuff
-            DerelictGL3.reload();
+            try
+            {
+                DerelictGL3.reload();
+            }
+            catch(Exception e)
+            {
+                throw new BackendException("Error reloading the OpenGL bindings: "
+                ~ e.msg);
+            }
         }
 
         /// Destroys the Display.
@@ -174,7 +182,15 @@ version(HaveAllegro5)
         /// Initializes the OpenGL bindings.
         public void initializeBackend()
         {
-            DerelictGL3.load();
+            try
+            {
+                DerelictGL3.load();
+            }
+            catch(Exception e)
+            {
+                throw new BackendException("Error loading the OpenGL bindings: "
+                ~ e.msg);
+            }
         }
     }
 

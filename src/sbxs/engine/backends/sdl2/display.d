@@ -81,7 +81,15 @@ version(HaveSDL2)
 
             // Now that we have a context, we can reload the OpenGL bindings, and
             // we'll get all the OpenGL 3+ stuff
-            DerelictGL3.reload();
+            try
+            {
+                DerelictGL3.reload();
+            }
+            catch(Exception e)
+            {
+                throw new BackendException("Error reloading the OpenGL bindings: "
+                ~ e.msg);
+            }
 
             // Enable VSync (TODO: Failing here shouldn't be an error. Log?)
             if (SDL_GL_SetSwapInterval(1) != 0)
@@ -192,7 +200,15 @@ version(HaveSDL2)
             if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
                 throw new BackendInitializationException(sdlGetError());
 
-            DerelictGL3.load();
+            try
+            {
+                DerelictGL3.load();
+            }
+            catch(Exception e)
+            {
+                throw new BackendException("Error loading OpenGL bindings: "
+                ~ e.msg);
+            }
         }
 
         /// Shuts the subsystem down.

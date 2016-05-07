@@ -24,7 +24,15 @@ version(HaveSDL2)
     {
         import sbxs.engine.backends.sdl2.helpers: sdlGetError;
 
-        DerelictSDL2.load();
+        try
+        {
+            DerelictSDL2.load();
+        }
+        catch (Exception e)
+        {
+            throw new BackendException("Error loading the SDL 2 library: "
+                ~ e.msg);
+        }
 
         if (SDL_Init(0) < 0)
             throw new BackendInitializationException(sdlGetError());
