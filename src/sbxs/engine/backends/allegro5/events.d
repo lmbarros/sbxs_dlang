@@ -537,7 +537,7 @@ version(HaveAllegro5)
         private DrawEventData _drawEventData;
 
         /// The one and only event queue used by the Engine.
-        private ALLEGRO_EVENT_QUEUE* _eventQueue;
+        package ALLEGRO_EVENT_QUEUE* _eventQueue;
 
         /// Event source for user-defined events.
         private ALLEGRO_EVENT_SOURCE _userEventSource;

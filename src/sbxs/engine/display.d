@@ -172,6 +172,11 @@ public struct DisplayParams
  *     $(LI `void swapBuffers()`: Assuming that some double buffering scheme
  *         is neing used, swaps the front and back buffers so that newly draw
  *         things become visible.)
+ *
+ *     $(LI `void postCreate(E)(E* engine)`: If this exists, it is called just
+ *         after the Display is created. You can use it to perform any further
+ *         initialization that depends on the engine being used (which is pased
+ *         as the `engine` parameter).)
  * )
  */
 public mixin template DisplayCommon(E)
@@ -217,7 +222,14 @@ public mixin template DisplayCommon(E)
     public Display create(DisplayParams params)
     {
         auto newDisplay = Display(params);
+
+        static if (hasMember!(Display, "postCreate"))
+        {
+            newDisplay.postCreate(_engine);
+        }
+
         _displaysByHandle[newDisplay.handle] = newDisplay;
+
         return newDisplay;
     }
 

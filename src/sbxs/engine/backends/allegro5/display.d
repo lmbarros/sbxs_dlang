@@ -90,6 +90,7 @@ version(HaveAllegro5)
         /// Destroys the Display.
         package(sbxs.engine) void destroy() nothrow @nogc
         {
+            al_register_event_source(_eventQueue, al_get_display_event_source(_display));
             al_destroy_display(_display);
         }
 
@@ -138,11 +139,36 @@ version(HaveAllegro5)
                 al_set_target_bitmap(al_get_backbuffer(_currentDisplay));
         }
 
+        /**
+         * Returns the Allegro event source associated with this Display.
+         *
+         * Used internally by this subsystem.
+         */
+        package @property ALLEGRO_EVENT_SOURCE* eventSource() nothrow @nogc
+        {
+            return al_get_display_event_source(_display);
+        }
+
         /// A handle that uniquely identifies this Display.
         public @property handleType handle() nothrow @nogc
         {
             return cast(handleType)(_display);
         }
+
+        /// Links the recently-created Display to the Engine that created it.
+        package(sbxs.engine) void postCreate(E)(E* engine)
+        in
+        {
+            assert(engine !is null);
+        }
+        body
+        {
+            _eventQueue = engine.events._eventQueue;
+            al_register_event_source(_eventQueue, al_get_display_event_source(_display));
+        }
+
+        /// The event queue to which this Display is connected.
+        private ALLEGRO_EVENT_QUEUE* _eventQueue = null;
 
         /// The Allegro object representing the Display.
         private ALLEGRO_DISPLAY* _display;
