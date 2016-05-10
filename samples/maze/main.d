@@ -74,8 +74,7 @@ void main()
                 writefln("Mouse: %s x %s, %s (%s)!", event.mouseX, event.mouseY, event.display, event.display.title);
             }
             return false;
-        },
-        0 // prio
+        }
     );
 
     DisplayParams dp;

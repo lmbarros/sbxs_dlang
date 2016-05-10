@@ -238,7 +238,7 @@ public mixin template EventsCommon(E)
      *         other words, handlers with a lower `prio` will be called
      *         before handlers with higher `prio` values.
      */
-    public void addHandler(EventHandler handler, int prio)
+    public void addHandler(EventHandler handler, int prio = 0)
     in
     {
         assert(handler !is null);
@@ -470,8 +470,7 @@ unittest
     bool handlerRan = false;
 
     engine.events.addHandler(
-        delegate(Event* event) { handlerRan = true; return true; },
-        0);
+        delegate(Event* event) { handlerRan = true; return true; } );
 
     assert(handlerRan == false); // sanity check
 
@@ -495,11 +494,11 @@ unittest
     // First, with a single event handler that returns `false`
     auto event = engine.events.makeTickEvent(0.2, 0.4);
 
-    engine.events.addHandler((Event* event) => false, 0);
+    engine.events.addHandler((Event* event) => false);
     assert(engine.events.callEventHandlers(&event) == false);
 
     // Then, with a second event handler, which returns `true`
-    engine.events.addHandler((Event* event) => true, 0);
+    engine.events.addHandler((Event* event) => true);
     assert(engine.events.callEventHandlers(&event) == true);
 }
 
@@ -641,8 +640,7 @@ unittest
                 ++numTicks;
 
             return false;
-        },
-        1
+        }
     );
 
     // Initially, no ticks
@@ -686,8 +684,7 @@ unittest
             }
 
             return false;
-        },
-        1
+        }
     );
 
     // Initially, no events
@@ -767,8 +764,7 @@ unittest
 
             ++numTicks;
             return false;
-        },
-        1
+        }
     );
 
     // Call `tick()`, passing delta times of 1, 1, 3, and 2 seconds
@@ -798,8 +794,7 @@ unittest
                 ++numDraws;
 
             return false;
-        },
-        1
+        }
     );
 
     // Initially, no draws
@@ -853,8 +848,7 @@ unittest
             ++numDraws;
 
             return false;
-        },
-        1
+        }
     );
 
     // Call `draw()` and `tick()`, passing interesting delta times, as in the
