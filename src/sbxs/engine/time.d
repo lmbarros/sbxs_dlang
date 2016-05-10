@@ -39,6 +39,12 @@ module sbxs.engine.time;
  *
  *     $(LI `void shutdownBackend()`: Just like `initializeBackend()`, but for
  *         finalization.)
+ *
+ *     $(LI `void onEndTick()`: If implemented, this is called by the Events
+ *         subsystem just at the end of the `tick()` method.)
+ *
+ *     $(LI `void onEndDraw()`: If implemented, this is called by the Events
+ *         subsystem just at the end of the `draw()` method.)
  * )
  */
 public mixin template TimeCommon(E)

@@ -353,6 +353,10 @@ public mixin template EventsCommon(E)
                 callEventHandlers(&event);
             }
         }
+
+        // Let the Time subsystem do things if it wants
+        static if (engineHasMember!(E, "time", "onEndTick"))
+            _engine.time.onEndTick();
     }
 
     /**
@@ -388,9 +392,13 @@ public mixin template EventsCommon(E)
         // Update the drawing time
         _drawingTimeInSecs = newDrawingTimeInSecs;
 
-        // And flip the buffers (if our back end supports this)
+        // Flip the buffers (if our back end supports this)
         static if (engineHasMember!(E, "display", "swapAllBuffers"))
             _engine.display.swapAllBuffers();
+
+        // And let the Time subsystem do things if it wants
+        static if (engineHasMember!(E, "time", "onEndDraw"))
+            _engine.time.onEndDraw();
     }
 
     /**
