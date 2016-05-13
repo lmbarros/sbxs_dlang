@@ -72,7 +72,10 @@ public mixin template TimeCommon(E)
     }
 
     /// Shuts the subsystem down.
-    package(sbxs.engine) void shutdown() { }
+    package(sbxs.engine) void shutdown()
+    {
+        mixin(smCallIfMemberExists("shutdownBackend"));
+    }
 }
 
 

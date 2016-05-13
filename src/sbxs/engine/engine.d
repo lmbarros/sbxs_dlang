@@ -100,13 +100,18 @@ mixin template EngineCommon()
      */
     public void shutdown()
     {
+        // Shut the backend parts of the engine down
+        mixin(smCallIfMemberExists("shutdownBackend"));
+
+        // Shut the subsystem themselves down (each one will shut its
+        // own back down end as needed)
         static if (engineHasMember!(typeof(this), "display", "shutdown"))
             display.shutdown();
 
         static if (engineHasMember!(typeof(this), "events", "shutdown"))
             events.shutdown();
 
-        static if (engineHasMember!(typeof(this), "os", "shutdown"))
+        static if (engineHasMember!(typeof(this), "time", "shutdown"))
             time.shutdown();
     }
 
@@ -163,6 +168,11 @@ unittest
     assert(engine.events.isInited == true);
     assert(engine.time.isInited == true);
 
-    // Engine hygiene
+    // Shutdown engine and check if all subsystems were really shut down
     engine.shutdown();
+
+    assert(engine.isInited == false);
+    assert(engine.display.isInited == false);
+    assert(engine.events.isInited == false);
+    assert(engine.time.isInited == false);
 }
