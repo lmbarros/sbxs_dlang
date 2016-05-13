@@ -58,23 +58,23 @@ version(HaveSDL2)
 
         mixin EngineCommon;
 
-        /// The display subsystem.
+        /// The Display subsystem.
         public SDL2DisplaySubsystem!SDL2Engine display;
 
-        /// The events subsystem.
+        /// The Events subsystem.
         public SDL2EventsSubsystem!SDL2Engine events;
 
-        /// The time subsystem.
+        /// The Time subsystem.
         public SDL2TimeSubsystem!SDL2Engine time;
 
         /// Initializes the SDL 2 library.
-        package(sbxs.engine)void initializeBackend()
+        package(sbxs.engine) void initializeBackend()
         {
             initializeSDL2();
         }
 
         /// Shuts down the SDL 2 library.
-        package(sbxs.engine)void shutdownBackend()
+        package(sbxs.engine) void shutdownBackend()
         {
             shutdownSDL2();
         }

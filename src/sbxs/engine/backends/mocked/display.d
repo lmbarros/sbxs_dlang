@@ -24,7 +24,7 @@ public struct MockedDisplay
     /**
      * The state of a `MockedDisplay`.
      *
-     * This is placed in a `struct` to make it easier to allcoate in the
+     * This is placed in a `struct` to make it easier to allocate in the
      * heap, so that it is shared among all copies of a Display (recall
      * that Displays shall have reference semantics).
      */

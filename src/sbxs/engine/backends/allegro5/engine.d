@@ -62,13 +62,13 @@ version(HaveAllegro5)
 
         mixin EngineCommon;
 
-        /// The display subsystem.
+        /// The Display subsystem.
         public Allegro5DisplaySubsystem!Allegro5Engine display;
 
-        /// The events subsystem.
+        /// The Events subsystem.
         public Allegro5EventsSubsystem!Allegro5Engine events;
 
-        /// The time subsystem.
+        /// The Time subsystem.
         public Allegro5TimeSubsystem!Allegro5Engine time;
 
         /// Initializes the Allegro 5 library.
