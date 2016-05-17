@@ -5,6 +5,9 @@
  * The multiplier and increment used here were apparently suggested by Don
  * Knuth, though I have taken them from Wikipedia, not from any primary source.
  *
+ * This is included because it is a classic. Any of the other algorithms
+ * included here should be a better alternative to this one.
+ *
  * License: MIT License, see the `LICENSE` file.
  *
  * Authors: Leandro Motta Barros.

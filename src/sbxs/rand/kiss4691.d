@@ -48,7 +48,7 @@ public struct KISS4691
         return mwc() + lcg() + xs();
     }
 
-    /// Seeds (initializes) this generator with two given seed values.
+    /// Seeds (initializes) this generator with two given 32-bit seed values.
     public void seed(uint seed1, uint seed2)
     {
         _xss = seed1;
@@ -61,7 +61,7 @@ public struct KISS4691
     }
 
 
-    /// Seeds (initializes) this generator with a given `seed` value.
+    /// Seeds (initializes) this generator with a given 64-bit `seed` value.
     public void seed(ulong seed)
     {
         uint seed1 = seed & 0xFFFF_FFFF;
