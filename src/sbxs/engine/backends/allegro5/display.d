@@ -90,7 +90,7 @@ version(HaveAllegro5)
         /// Destroys the Display.
         package(sbxs.engine) void destroy() nothrow @nogc
         {
-            al_register_event_source(_eventQueue, al_get_display_event_source(_display));
+            al_unregister_event_source(_eventQueue, al_get_display_event_source(_display));
             al_destroy_display(_display);
         }
 

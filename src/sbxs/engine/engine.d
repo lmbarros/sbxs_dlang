@@ -100,9 +100,6 @@ mixin template EngineCommon()
      */
     public void shutdown()
     {
-        // Shut the backend parts of the engine down
-        mixin(smCallIfMemberExists("shutdownBackend"));
-
         // Shut the subsystem themselves down (each one will shut its
         // own back down end as needed)
         static if (engineHasMember!(typeof(this), "display", "shutdown"))
@@ -113,6 +110,9 @@ mixin template EngineCommon()
 
         static if (engineHasMember!(typeof(this), "time", "shutdown"))
             time.shutdown();
+
+        // Shut the backend parts of the engine down
+        mixin(smCallIfMemberExists("shutdownBackend"));
     }
 
     static if (engineHasMember!(typeof(this), "display", "Display"))
