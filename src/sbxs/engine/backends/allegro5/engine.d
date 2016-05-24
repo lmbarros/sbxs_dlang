@@ -68,6 +68,9 @@ version(HaveAllegro5)
         /// The Events subsystem.
         public Allegro5EventsSubsystem!Allegro5Engine events;
 
+        /// The Raster subsystem.
+        public Allegro5RasterSubsystem!Allegro5Engine raster;
+
         /// The Time subsystem.
         public Allegro5TimeSubsystem!Allegro5Engine time;
 

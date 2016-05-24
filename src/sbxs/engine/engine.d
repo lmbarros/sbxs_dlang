@@ -71,6 +71,13 @@ mixin template EngineCommon()
      * Initializes the engine; this must be called before using it.
      *
      * See_also: `shutdown()`
+     *
+     * TODO: Initialization (and the same applies for shut down) of subsystems
+     *     is now made in a fixed order that seems to work. However, the
+     *     "correct" order (or orders) actually depends on the (possibly
+     *     subtle) interactions between the subsystems efectively being used.
+     *     I may need to thing about a better solution for this than
+     *     intializing in a fixed order.
      */
     public void initialize()
     {
@@ -87,6 +94,9 @@ mixin template EngineCommon()
 
         static if (engineHasMember!(typeof(this), "display", "initialize"))
             display.initialize(&this);
+
+        static if (engineHasMember!(typeof(this), "raster", "initialize"))
+            raster.initialize(&this);
     }
 
     /**
@@ -102,6 +112,9 @@ mixin template EngineCommon()
     {
         // Shut the subsystem themselves down (each one will shut its
         // own back down end as needed)
+        static if (engineHasMember!(typeof(this), "raster", "shutdown"))
+            raster.shutdown();
+
         static if (engineHasMember!(typeof(this), "display", "shutdown"))
             display.shutdown();
 
@@ -147,6 +160,7 @@ mixin template EngineCommon()
 // -----------------------------------------------------------------------------
 
 // Check if the engine initializes and shuts down all back end subsystems.
+// xxxxxxxxxxxxxx add raster! xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 unittest
 {
     import sbxs.engine;

@@ -64,6 +64,9 @@ version(HaveSDL2)
         /// The Events subsystem.
         public SDL2EventsSubsystem!SDL2Engine events;
 
+        /// The Raster subsystem.
+        public SDL2RasterSubsystem!SDL2Engine raster;
+
         /// The Time subsystem.
         public SDL2TimeSubsystem!SDL2Engine time;
 

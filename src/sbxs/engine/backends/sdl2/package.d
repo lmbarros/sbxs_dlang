@@ -10,10 +10,11 @@
 
 module sbxs.engine.backends.sdl2;
 
-public import sbxs.engine.backends.sdl2.engine;
-public import sbxs.engine.backends.sdl2.time;
 public import sbxs.engine.backends.sdl2.display;
+public import sbxs.engine.backends.sdl2.engine;
 public import sbxs.engine.backends.sdl2.events;
+public import sbxs.engine.backends.sdl2.raster;
+public import sbxs.engine.backends.sdl2.time;
 
 
 // Just a dummy test, to make this otherwise code-less file appear as 100%

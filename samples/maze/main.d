@@ -45,6 +45,13 @@ void main()
 
     writeln(helloMessage);
 
+    DisplayParams dp;
+    dp.title = windowTitle;
+    auto d = engine.display.create(dp);
+    writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
+
+    auto bmpWall = engine.raster.loadHWBitmap("data/wall.png");
+
     engine.events.addHandler(
         delegate(Engine.Event* event)
         {
@@ -68,6 +75,8 @@ void main()
                 import std.random;
                 glClearColor(uniform01(), uniform01(), uniform01(), 1.0);
                 glClear(GL_COLOR_BUFFER_BIT);
+
+                bmpWall.draw(100.0, 0.0);
             }
             else if (event.type == EventType.mouseMove)
             {
@@ -76,11 +85,6 @@ void main()
             return false;
         }
     );
-
-    DisplayParams dp;
-    dp.title = windowTitle;
-    auto d = engine.display.create(dp);
-    writefln("Created display %s/%s: %sx%s, %s", d.handle, d, d.width, d.height, d.title);
 
     while(engine.time.getTime() < 5.0)
     {

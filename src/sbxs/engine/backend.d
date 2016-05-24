@@ -107,3 +107,73 @@ unittest
     assertThrownWithMessage!DisplayCreationException("Augh!");
     assertThrownWithoutMessage!DisplayCreationException("Augh!");
 }
+
+
+
+/// Exception thrown when an error happens while creating a Bitmap.
+public class BitmapCreationException: BackendException
+{
+    /**
+     * Constructs the exception.
+     *
+     * Parameters:
+     *     fileName = The file name of the file being loaded, if available.
+     *     additionalInfo = If the back end can add some information about what
+     *         has failed or what can be done to fix it, please pass it here.
+     */
+    public this(string fileName = "", string additionalInfo = "",
+        string file = __FILE__, size_t line = __LINE__,
+        Throwable next = null) nothrow @safe
+    {
+        const msg = "Error while creating a bitmap"
+            ~ (fileName.length > 0
+                ? (" (from file '" ~ fileName ~ "'.) ")
+                : ". ")
+            ~ (additionalInfo.length > 0
+                ? (" Here's what the back end has to say about it: " ~ additionalInfo)
+                : "The back end doesn't have anything else to say about it, sorry.");
+        super(msg, file, line, next);
+    }
+}
+
+// Check if `msg` contains the file name and additional info.
+unittest
+{
+    bool caught = false;
+
+    try
+    {
+        throw new BitmapCreationException("cool_image.png", "Blah.");
+    }
+    catch(BitmapCreationException e)
+    {
+        import std.string: indexOf;
+        assert(indexOf(e.msg, "cool_image.png") >= 0);
+        assert(indexOf(e.msg, "Blah.") >= 0);
+        caught = true;
+    }
+
+    // Sanity check: did we really got into that exception handler?
+    assert(caught == true);
+}
+
+// Tries not passing a file name or additional info string.
+unittest
+{
+    bool caught = false;
+
+    try
+    {
+        throw new BitmapCreationException();
+    }
+    catch(BitmapCreationException e)
+    {
+        import std.string: indexOf;
+        assert(indexOf(e.msg, "cool_image.png") < 0);
+        assert(indexOf(e.msg, "Blah.") < 0);
+        caught = true;
+    }
+
+    // Sanity check: did we really got into that exception handler?
+    assert(caught == true);
+}
